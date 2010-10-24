@@ -23,6 +23,8 @@
 
 package ste.cameracontrol;
 
+import java.util.ArrayList;
+
 /**
  * This class is the centralized controlled of the camera. It controls all
  * aspects of the interaction with the camera, from connectivity to picture
@@ -34,11 +36,14 @@ public class CameraController {
 
     private CameraConnection connection;
 
+    private ArrayList<CameraListener> listeners;
+
     /**
      * Creates a new CameraController
      */
     public CameraController() {
         connection = new CameraConnection();
+        listeners = new ArrayList<CameraListener>();
     }
 
     /**
@@ -48,5 +53,48 @@ public class CameraController {
      */
     public boolean isConnected() {
         return connection.isConnected();
+    }
+
+    /**
+     * Adds a CameraControllerListener to the list of listeners to be notified
+     * of camera events.
+     *
+     * @param listener the listener to add - NOT NULL
+     *
+     * @trhows  IllegalArgumentException if listener is null
+     *
+     */
+    public synchronized void addCameraListener(CameraListener listener) {
+        if (listener == null) {
+            throw new IllegalArgumentException("listener cannot be null");
+        }
+
+        listeners.add(listener);
+    }
+
+    // --------------------------------------------------------- Private methods
+
+    /**
+     * Used to set the connection status. Setting the connection status is
+     * considered a status change, therefore invokes the registered
+     * CameraListeners (if any).
+     *
+     * TODO: return the connected UsbDevice
+     *
+     * @param status the status of the connection: true if the camera is
+     *        connected false otherwise.
+     */
+    private synchronized void setConnected(final boolean status) {
+        if (listeners == null) {
+            return;
+        }
+
+        for(CameraListener listener: listeners) {
+            if (status) {
+                listener.cameraConnected(null);
+            } else {
+                listener.cameraDisconnected(null);
+            }
+        }
     }
 }
