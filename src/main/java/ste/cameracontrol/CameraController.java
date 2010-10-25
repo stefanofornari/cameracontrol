@@ -32,11 +32,16 @@ import java.util.ArrayList;
  *
  * @author ste
  */
-public class CameraController {
+public class CameraController implements Runnable {
+
+    private final long POLLING_PERIOD = 50;
 
     private CameraConnection connection;
 
     private ArrayList<CameraListener> listeners;
+
+    private boolean cameraMonitorActive;
+    private boolean cameraConnected;
 
     /**
      * Creates a new CameraController
@@ -44,6 +49,8 @@ public class CameraController {
     public CameraController() {
         connection = new CameraConnection();
         listeners = new ArrayList<CameraListener>();
+        cameraMonitorActive = false;
+        cameraConnected = false;
     }
 
     /**
@@ -72,6 +79,44 @@ public class CameraController {
         listeners.add(listener);
     }
 
+    /**
+     * Starts the camera detecting monitor in a new thread (if not already
+     * started).
+     */
+    public synchronized void startCameraMonitor() {
+        if (!cameraMonitorActive) {
+            new Thread(this).start();
+            cameraMonitorActive = true;
+        }
+    }
+
+    /**
+     * Stops the camera detecting monitor.
+     */
+    public synchronized void stopCameraMonior() {
+        cameraMonitorActive = false;
+    }
+
+    /**
+     * Runs the camera detecting monitor (required by Runnable)
+     */
+    @Override
+    public void run() {
+        boolean cameraConnectedNew = false;
+        while (cameraMonitorActive) {
+            cameraConnectedNew = isConnected();
+            if (cameraConnectedNew != cameraConnected) {
+                setConnected(cameraConnectedNew);
+            }
+            
+            try {
+                Thread.sleep(POLLING_PERIOD);
+            } catch (Exception e) {
+                break;
+            }
+        }
+    }
+
     // --------------------------------------------------------- Private methods
 
     /**
@@ -85,6 +130,8 @@ public class CameraController {
      *        connected false otherwise.
      */
     private synchronized void setConnected(final boolean status) {
+        cameraConnected = status;
+        
         if (listeners == null) {
             return;
         }

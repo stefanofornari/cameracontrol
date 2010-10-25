@@ -84,4 +84,52 @@ public class CameraControllerTest
             assertTrue(l.fired);
         }
     }
+
+    public void testStartCameraMonitor() throws Exception {
+        ConnectedEventListener l = new ConnectedEventListener();
+
+        LibusbJava.init(new Canon1000D(false));
+        CONTROLLER.addCameraListener(l);
+        CONTROLLER.startCameraMonitor();
+        Thread.sleep(Math.round(Math.random()*150));
+        assertFalse(l.fired);
+        LibusbJava.init(new Canon1000D(true));
+        Thread.sleep(Math.round(Math.random()*150));
+        assertTrue(l.fired);
+        //
+        // It has to notify only changes
+        //
+        l.fired = false;
+        Thread.sleep(Math.round(Math.random()*150));
+        assertFalse(l.fired);
+    }
+
+    public void testStopCameraMonitor() throws Exception {
+        ConnectedEventListener l = new ConnectedEventListener();
+
+        //
+        // By default the monitor does not run
+        //
+        LibusbJava.init(new Canon1000D(true));
+        CONTROLLER.addCameraListener(l);
+        Thread.sleep(Math.round(Math.random()*150));
+        assertFalse(l.fired);
+
+        //
+        // Let's start the monitor now
+        //
+        l.fired = false;
+        CONTROLLER.startCameraMonitor();
+        Thread.sleep(Math.round(Math.random()*150));
+        assertTrue(l.fired);
+
+        //
+        // Let's stop the monitor and detach the camera
+        //
+        l.fired = false;
+        LibusbJava.init(new Canon1000D(false));
+        CONTROLLER.stopCameraMonior();
+        Thread.sleep(Math.round(Math.random()*150));
+        assertFalse(l.fired);
+    }
 }
