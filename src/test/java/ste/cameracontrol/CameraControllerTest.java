@@ -91,16 +91,16 @@ public class CameraControllerTest
         LibusbJava.init(new Canon1000D(false));
         CONTROLLER.addCameraListener(l);
         CONTROLLER.startCameraMonitor();
-        Thread.sleep(Math.round(Math.random()*150));
+        Thread.sleep(Math.round(150));
         assertFalse(l.fired);
         LibusbJava.init(new Canon1000D(true));
-        Thread.sleep(Math.round(Math.random()*150));
+        Thread.sleep(Math.round(100));
         assertTrue(l.fired);
         //
         // It has to notify only changes
         //
         l.fired = false;
-        Thread.sleep(Math.round(Math.random()*150));
+        Thread.sleep(Math.round(100));
         assertFalse(l.fired);
     }
 

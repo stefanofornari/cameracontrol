@@ -22,6 +22,9 @@
 
 package ste.cameracontrol.ui;
 
+import java.awt.Toolkit;
+import java.awt.event.WindowEvent;
+
 /**
  *
  * @author ste
@@ -46,7 +49,7 @@ public class CameraControlWindow extends javax.swing.JFrame {
         nameLabel = new javax.swing.JLabel();
         label2 = new javax.swing.JLabel();
         statusLabel = new javax.swing.JLabel();
-        jButton1 = new javax.swing.JButton();
+        closeButton = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Camera connection status");
@@ -58,16 +61,21 @@ public class CameraControlWindow extends javax.swing.JFrame {
         label1.setLabelFor(nameLabel);
         label1.setText("Camera:");
 
-        nameLabel.setText("jLabel2");
+        nameLabel.setText("---");
         nameLabel.setName("nameLabel"); // NOI18N
 
         label2.setLabelFor(statusLabel);
         label2.setText("Status:");
 
-        statusLabel.setText("jLabel4");
+        statusLabel.setText("---");
         statusLabel.setName("statusLabel"); // NOI18N
 
-        jButton1.setText("OK");
+        closeButton.setText("Close");
+        closeButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                closeButtonActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -79,13 +87,13 @@ public class CameraControlWindow extends javax.swing.JFrame {
                     .addComponent(label2)
                     .addComponent(label1))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(nameLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 311, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(statusLabel))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(statusLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(nameLabel, javax.swing.GroupLayout.DEFAULT_SIZE, 311, Short.MAX_VALUE))
                 .addContainerGap(15, Short.MAX_VALUE))
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap(335, Short.MAX_VALUE)
-                .addComponent(jButton1)
+                .addContainerGap(319, Short.MAX_VALUE)
+                .addComponent(closeButton)
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -100,12 +108,19 @@ public class CameraControlWindow extends javax.swing.JFrame {
                     .addComponent(label2)
                     .addComponent(statusLabel))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 19, Short.MAX_VALUE)
-                .addComponent(jButton1)
+                .addComponent(closeButton)
                 .addContainerGap())
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
+
+    private void closeButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_closeButtonActionPerformed
+        dispose();
+        Toolkit.getDefaultToolkit().getSystemEventQueue().postEvent(
+            new WindowEvent(this, WindowEvent.WINDOW_CLOSING)
+        );
+    }//GEN-LAST:event_closeButtonActionPerformed
 
     /**
     * @param args the command line arguments
@@ -119,11 +134,19 @@ public class CameraControlWindow extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButton1;
+    private javax.swing.JButton closeButton;
     private javax.swing.JLabel label1;
     private javax.swing.JLabel label2;
     private javax.swing.JLabel nameLabel;
     private javax.swing.JLabel statusLabel;
     // End of variables declaration//GEN-END:variables
 
+
+    // ---------------------------------------------------------- Public methods
+
+    public void setStatus(String status) {
+        if (status != null) {
+            statusLabel.setText(status);
+        }
+    }
 }
