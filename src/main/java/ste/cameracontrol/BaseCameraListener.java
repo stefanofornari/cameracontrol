@@ -22,7 +22,7 @@
 
 package ste.cameracontrol;
 
-import ch.ntb.usb.UsbDevice;
+import ch.ntb.usb.Device;
 
 /**
  * Empty implementation for a CameraListener
@@ -35,8 +35,7 @@ public class BaseCameraListener implements CameraListener {
      * 
      * @param device the USB device associated to the camera
      */
-    @Override
-    public void cameraConnected(UsbDevice device) {}
+    public void cameraConnected(Device device) {}
 
     /**
      * Called when the camera has been dis
@@ -44,6 +43,5 @@ public class BaseCameraListener implements CameraListener {
      *
      * @param device the USB device associated to the camera
      */
-    @Override
-    public void cameraDisconnected(UsbDevice device) {}
+    public void cameraDisconnected(Device device) {}
 }

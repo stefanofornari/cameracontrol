@@ -147,6 +147,16 @@ public class CameraControlWindow extends javax.swing.JFrame {
     public void setStatus(String status) {
         if (status != null) {
             statusLabel.setText(status);
+        } else {
+            statusLabel.setText("---");
+        }
+    }
+
+    public void setCameraDisplayName(String camera) {
+        if (camera != null) {
+            nameLabel.setText(camera);
+        } else {
+            nameLabel.setText("---");
         }
     }
 }

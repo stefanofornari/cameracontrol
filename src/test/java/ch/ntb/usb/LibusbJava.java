@@ -21,7 +21,7 @@
  */
 package ch.ntb.usb;
 
-import ch.ntb.usb.demo.AbstractDeviceInfo;
+import ch.ntb.usb.devinf.AbstractDeviceInfo;
 import java.io.UnsupportedEncodingException;
 
 /**
@@ -44,8 +44,8 @@ public class LibusbJava {
         intDesc.setInterfaceProtocol(devInfo.getInterfaceProtocol());
         UsbEndpointDescriptor epDesc = new UsbEndpointDescriptor();
 
-        devDesc.setVendorId(devInfo.getIdVendor());
-        devDesc.setProductId(devInfo.getIdProduct());
+        devDesc.setVendorId(devInfo.getVendorId());
+        devDesc.setProductId(devInfo.getProductId());
 
         epDesc.setMaxPacketSize((short)devInfo.getMaxDataSize());
         intDesc.setEndpoints(new UsbEndpointDescriptor[] {epDesc});

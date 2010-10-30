@@ -5,7 +5,7 @@
 
 package ste.cameracontrol.event;
 
-import ch.ntb.usb.UsbDevice;
+import ch.ntb.usb.Device;
 import ste.cameracontrol.BaseCameraListener;
 
 /**
@@ -14,11 +14,15 @@ import ste.cameracontrol.BaseCameraListener;
  */
 public class ConnectedEventListener extends BaseCameraListener {
 
-    public boolean fired = false;
+    public Device device = null;
 
     @Override
-    public void cameraConnected(UsbDevice device) {
-        fired = true;
+    public void cameraConnected(Device device) {
+        this.device = device;
     }
 
+    @Override
+    public void cameraDisconnected(Device device) {
+        this.device = null;
+    }
 }

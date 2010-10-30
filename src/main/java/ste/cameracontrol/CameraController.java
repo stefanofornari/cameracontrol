@@ -23,6 +23,9 @@
 
 package ste.cameracontrol;
 
+import ch.ntb.usb.Device;
+import ch.ntb.usb.USB;
+import ch.ntb.usb.UsbDevice;
 import java.util.ArrayList;
 
 /**
@@ -41,6 +44,7 @@ public class CameraController implements Runnable {
     private ArrayList<CameraListener> listeners;
 
     private boolean cameraMonitorActive;
+    private Device camera;
     private boolean cameraConnected;
 
     /**
@@ -51,6 +55,8 @@ public class CameraController implements Runnable {
         listeners = new ArrayList<CameraListener>();
         cameraMonitorActive = false;
         cameraConnected = false;
+        camera = null;
+        checkCamera();
     }
 
     /**
@@ -59,7 +65,7 @@ public class CameraController implements Runnable {
      * @return true if the camera is connected, false otherwise
      */
     public boolean isConnected() {
-        return connection.isConnected();
+        return cameraConnected;
     }
 
     /**
@@ -102,11 +108,14 @@ public class CameraController implements Runnable {
      */
     @Override
     public void run() {
-        boolean cameraConnectedNew = false;
+        checkCamera();
+        setConnected();
+
         while (cameraMonitorActive) {
-            cameraConnectedNew = isConnected();
-            if (cameraConnectedNew != cameraConnected) {
-                setConnected(cameraConnectedNew);
+            boolean cameraConnectedOld = cameraConnected;
+            checkCamera();
+            if (cameraConnectedOld != cameraConnected) {
+                setConnected();
             }
             
             try {
@@ -124,24 +133,37 @@ public class CameraController implements Runnable {
      * considered a status change, therefore invokes the registered
      * CameraListeners (if any).
      *
-     * TODO: return the connected UsbDevice
-     *
      * @param status the status of the connection: true if the camera is
      *        connected false otherwise.
      */
-    private synchronized void setConnected(final boolean status) {
-        cameraConnected = status;
-        
+    private synchronized void setConnected() {
         if (listeners == null) {
             return;
         }
 
         for(CameraListener listener: listeners) {
-            if (status) {
-                listener.cameraConnected(null);
+            if (cameraConnected) {
+                listener.cameraConnected(camera);
             } else {
-                listener.cameraDisconnected(null);
+                listener.cameraDisconnected(camera);
             }
+        }
+    }
+
+    private synchronized void checkCamera() {
+        UsbDevice dev = connection.findCamera();
+        
+        cameraConnected = (dev != null);
+
+        if (dev == null) {
+            camera = null;
+            cameraConnected = false;
+        } else {
+            camera = USB.getDevice(
+                         dev.getDescriptor().getVendorId(),
+                         dev.getDescriptor().getProductId()
+                     );
+            cameraConnected = true;
         }
     }
 }

@@ -40,12 +40,16 @@ public class CameraConnection {
     }
 
     public boolean isConnected() {
+        return (findCamera() != null);
+    }
+
+    public UsbDevice findCamera() {
         LibusbJava.usb_find_busses();
         LibusbJava.usb_find_devices();
 
         UsbBus bus = LibusbJava.usb_get_busses();
 
-        return (findCamera(bus) != null);
+        return findCamera(bus);
     }
 
     // --------------------------------------------------------- private methods

@@ -22,8 +22,8 @@
 
 package ste.cameracontrol;
 
-import ch.ntb.usb.UsbDevice;
-import ste.cameracontrol.CameraStatusMain;
+import ch.ntb.usb.Device;
+import ch.ntb.usb.DeviceDatabase;
 import ste.cameracontrol.ui.CameraControlWindow;
 
 /**
@@ -35,22 +35,29 @@ public class CameraStatusMain implements CameraListener {
     private CameraController controller;
     private CameraControlWindow window;
 
+    private DeviceDatabase deviceDatabase;
+
     public CameraStatusMain() {
+        deviceDatabase = new DeviceDatabase();
+
         controller = new CameraController();
         controller.addCameraListener(this);
-        controller.startCameraMonitor();
-
+        
         window = new CameraControlWindow();
         window.setVisible(true);
+
+        controller.startCameraMonitor();
     }
 
     @Override
-    public void cameraConnected(UsbDevice device) {
+    public void cameraConnected(Device device) {
+        window.setCameraDisplayName(device.getDisplayName());
         window.setStatus("Camera connected");
     }
 
     @Override
-    public void cameraDisconnected(UsbDevice device) {
+    public void cameraDisconnected(Device device) {
+        window.setCameraDisplayName("---");
         window.setStatus("Camera not connected");
     }
 

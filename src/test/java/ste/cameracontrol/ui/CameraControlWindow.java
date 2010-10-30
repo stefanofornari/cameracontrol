@@ -20,26 +20,27 @@
  * MA 02110-1301 USA.
  */
 
-package ste.cameracontrol;
-
-import ch.ntb.usb.Device;
+package ste.cameracontrol.ui;
 
 /**
- *
+ * This is a mock of the original class for testing purposes.
+ * 
  * @author ste
  */
-public interface CameraListener {
-    /**
-     * Called when the camera has been connected.
-     * 
-     * @param device the USB device associated to the camera
-     */
-    public void cameraConnected(Device device);
+public class CameraControlWindow {
+    public String camera;
+    public String status;
 
-    /**
-     * Called when the camera has been disconnected.
-     *
-     * @param device the USB device associated to the camera
-     */
-    public void cameraDisconnected(Device device);
+    public CameraControlWindow() {
+    }
+
+    public void setVisible(boolean visible) {}
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+    public void setCameraDisplayName(String camera) {
+        this.camera = camera;
+    }
+
 }
