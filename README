@@ -31,9 +31,9 @@ help.
 
 JavaUSB 2
 ---------
-Camera Control uses a derivative work of the Java USB programming
+Camera PTP uses a derivative work of the Java USB programming
 library javausb (http://libusbjava.sourceforge.net/wp) named
-JavaUSB 2. This is just a modernization of the workinginal library
+JavaUSB 2. This is just a modernization of the original library
 with few additions needed to better support Camera Control. You
 can find more information here http://code.google.com/p/usbjava.
 
