@@ -19,7 +19,7 @@ package ste.cameracontrol;
 import ch.ntb.usb.Device;
 import ch.ntb.usb.USB;
 import ch.ntb.usb.USBException;
-import ch.ntb.usb.devinf.CanonEOS1000D;
+import ch.ntb.usb.UsbDevice;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -423,7 +423,16 @@ public class Main {
         //
         // For now, let's look at the Canond EOS 1000D...
         //
-        dev = USB.getDevice(CanonEOS1000D.VENDOR, CanonEOS1000D.PRODUCT);
+        CameraConnection connection = new CameraConnection();
+        UsbDevice usbDevice = connection.findCamera();
+
+        if (usbDevice != null) {
+
+            dev = USB.getDevice(
+                             usbDevice.getDescriptor().getVendorId(),
+                             usbDevice.getDescriptor().getProductId()
+                         );
+        }
 
         if (dev == null) {
             System.err.println("Camera not available");
