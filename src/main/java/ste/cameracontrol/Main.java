@@ -1,27 +1,31 @@
-// Copyright 2000 by David Brownell <dbrownell@users.sourceforge.net>
-//
-// This program is free software; you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation; either version 2 of the License, or
-// (at your option) any later version.
-// 
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-// 
-// You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-//
+/*
+ * Camera Control
+ * Copyright (C) 2010 Stefano Fornari
+ *
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU Affero General Public License version 3 as published by
+ * the Free Software Foundation with the addition of the following permission
+ * added to Section 15 as permitted in Section 7(a): FOR ANY PART OF THE COVERED
+ * WORK IN WHICH THE COPYRIGHT IS OWNED BY Stefano Fornari, Stefano Fornari
+ * DISCLAIMS THE WARRANTY OF NON INFRINGEMENT OF THIRD PARTY RIGHTS.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program; if not, see http://www.gnu.org/licenses or write to
+ * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+ * MA 02110-1301 USA.
+ */
 package ste.cameracontrol;
 
 import ch.ntb.usb.Device;
 import ch.ntb.usb.USB;
-import ch.ntb.usb.USBException;
+import ch.ntb.usb.USBBusyException;
 import ch.ntb.usb.UsbDevice;
 import java.io.File;
-import java.io.IOException;
 import java.io.PrintStream;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -30,15 +34,14 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.PosixParser;
 import ste.ptp.DeviceInfo;
 import ste.ptp.DevicePropDesc;
-import ste.ptp.Initiator;
+import ste.ptp.eos.EosInitiator;
+import ste.ptp.PTPException;
 import ste.ptp.Response;
 
 /**
- * This is a command line tool, which currently supports
- * access only to PTP cameras.
+ * This is a command line tool to access EOS PTP cameras.
  *
- * @version $Id: Main.java,v 1.20 2001/05/30 19:35:13 dbrownell Exp $
- * @author David Brownell
+ * @author Stefano Fornari
  */
 public class Main {
 
@@ -65,6 +68,7 @@ public class Main {
         System.err.println("  reset ... reset request");
         System.err.println("  storage ... shows storage info");
         System.err.println("  tree ... lists storage contents");
+        System.err.println("  shoot ... take a picture without transferring the impage");
 
         System.err.println("Other commands include:");
         // System.err.println ("  delete filename ... deletes one object");
@@ -87,7 +91,7 @@ public class Main {
         System.err.println("  --storage  value (or, -s value)");
 
         System.err.println("Documentation and Copyright at:  "
-                + "http://code.google.com/p/cameracontrol/");
+                + "http://code.google.com/p/cameracontrol");
         System.err.println("Licensed under the Affero GNU General Public License 3.0.");
         System.err.println("No Warranty.");
         System.err.println();
@@ -283,11 +287,12 @@ public class Main {
                 /*
                 if ("cameras".equals (argv [c]) || "devices".equals (argv [c]))
                 cameras (argv, c);
-                else if ("capture".equals (argv [c]))
-                capture (argv, c);
-                else
-                 */
-                if ("devinfo".equals(arg)) {
+                else 
+                */
+                if ("shoot".equals(arg)) {
+                    shoot();
+                } 
+                else if ("devinfo".equals(arg)) {
                     devinfo();
                 } /*else if ("devprops".equals (argv [c]))
                 devprops (argv, c);
@@ -325,11 +330,17 @@ public class Main {
             System.err.println("Device does not support " + e.getMessage());
             System.exit(1);
 
-        } catch (IOException e) {
-            System.err.println("I/O exception: " + e.getMessage());
-            // e.printStackTrace ();
+        } catch (PTPException e) {
+            //
+            // Let's intercept for now when a device is busy
+            //
+            Throwable cause = e.getCause();
+            if (cause instanceof USBBusyException) {
+                System.err.println("The camera is busy. Please make sure not any other program is using and locking the device.");
+            } else {
+                System.err.println(e.getMessage());
+            }
             System.exit(1);
-
         } catch (SecurityException e) {
             System.err.println(e.getMessage());
             System.exit(1);
@@ -350,29 +361,46 @@ public class Main {
     }
 
     private static void devinfo()
-            throws USBException {
-        Initiator dev = null;
+    throws PTPException {
+        EosInitiator dev = startCamera(false);
 
-        try {
-            dev = startCamera(false);
-        } catch (USBException e) {
-            System.err.println("ERROR: " + e.getMessage());
-            return;
-        }
+        //
+        // If the camera is not found we should not be here (an exception is
+        // thrown).
+        //
         DeviceInfo info = dev.getDeviceInfo();
 
         info.dump(System.out);
+        //
         // no session to close!
+        //
+    }
+
+    private static void shoot()
+    throws PTPException {
+        EosInitiator dev = startCamera(true);
+
+        //
+        // If the camera is not found we should not be here (an exception is
+        // thrown).
+        //
+        int status = dev.initiateCapture (storageId, 0);
+
+        if (status != Response.OK) {
+            // FIXME -- gets replaced with the better scheme
+            System.out.print   ("Can't initiate capture: ");
+            System.out.println (dev.getResponseString (status));
+        }
     }
 
     private static void getprop(String argv[], int index)
-            throws USBException {
+    throws PTPException {
         if (index != (argv.length - 2)) {
             usage(-1);
         }
 
         int propcode;
-        Initiator dev;
+        EosInitiator dev;
         DeviceInfo info;
 
         propcode = DevicePropDesc.getPropertyCode(argv[index + 1]);
@@ -410,15 +438,15 @@ public class Main {
         }
     }
 
-    private static Initiator startCamera()
-            throws USBException {
+    private static EosInitiator startCamera()
+    throws PTPException {
         return startCamera(true);
     }
 
-    private static Initiator startCamera(boolean session)
-            throws USBException {
+    private static EosInitiator startCamera(boolean session)
+    throws PTPException {
         Device dev = null;
-        Initiator retval;
+        EosInitiator retval;
 
         //
         // For now, let's look at the Canond EOS 1000D...
@@ -438,7 +466,7 @@ public class Main {
             System.err.println("Camera not available");
             System.exit(1);
         }
-        retval = new Initiator(dev);
+        retval = new EosInitiator(dev);
 
         if (session) {
             retval.openSession();
@@ -450,7 +478,7 @@ public class Main {
         return retval;
     }
 
-    static void closeSession(Initiator dev) {
+    static void closeSession(EosInitiator dev) {
         try {
             dev.closeSession();
         } catch (Exception e) {
