@@ -1,4 +1,4 @@
-#!/bin/sh
+    #!/bin/sh
 
 #
 # Copyright (C) 2010.  All rights reserved.
@@ -50,4 +50,5 @@ cd "$CURDIR"
 LANG=en_US.UTF-8
 
 echo "Using $JAVA_CMD"
-$JAVA_CMD -Djava.library.path="$CMD_HOME/lib" -Xdebug -Xnoagent -Xrunjdwp:transport=dt_socket,address=8787,server=y,suspend=n ste.cameracontrol.Main "$@"
+#$JAVA_CMD -Djava.library.path="$CMD_HOME/lib" -Xdebug -Xnoagent -Xrunjdwp:transport=dt_socket,address=8787,server=y,suspend=y ste.cameracontrol.Main "$@"
+$JAVA_CMD -Djava.library.path="$CMD_HOME/lib" ste.cameracontrol.Main "$@"
