@@ -27,6 +27,7 @@ import ch.ntb.usb.USBBusyException;
 import ch.ntb.usb.UsbDevice;
 import java.io.File;
 import java.io.PrintStream;
+import java.util.List;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.OptionBuilder;
@@ -37,6 +38,8 @@ import ste.ptp.DevicePropDesc;
 import ste.ptp.eos.EosInitiator;
 import ste.ptp.PTPException;
 import ste.ptp.Response;
+import ste.ptp.eos.EosEvent;
+import ste.ptp.eos.EosEventFormat;
 
 /**
  * This is a command line tool to access EOS PTP cameras.
@@ -60,6 +63,7 @@ public class Main {
 
         System.err.println("Key commands include:");
         System.err.println("  cameras ... lists devices by portid");
+        System.err.println("  get-events ... checks and list camera events");
         System.err.println("  capture ... starts image/object capture");
         System.err.println("  devinfo ... shows device info");
         System.err.println("  devprops ... shows all device properties");
@@ -289,10 +293,11 @@ public class Main {
                 cameras (argv, c);
                 else 
                 */
-                if ("shoot".equals(arg)) {
+                if ("get-events".equals(arg)) {
+                    getEvents();
+                } else if ("shoot".equals(arg)) {
                     shoot();
-                } 
-                else if ("devinfo".equals(arg)) {
+                } else if ("devinfo".equals(arg)) {
                     devinfo();
                 } /*else if ("devprops".equals (argv [c]))
                 devprops (argv, c);
@@ -375,6 +380,25 @@ public class Main {
         // no session to close!
         //
     }
+
+    private static void getEvents()
+    throws PTPException {
+        EosInitiator dev = startCamera(true);
+
+        List<EosEvent> events = dev.checkEvents();
+
+        System.out.println("Events:");
+        if (events.isEmpty()) {
+             System.out.println("no events found");
+        }
+
+        for (EosEvent event: events) {
+            System.out.println(EosEventFormat.format(event));
+        }
+
+        dev.closeSession();
+    }
+
 
     private static void shoot()
     throws PTPException {
