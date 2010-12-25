@@ -22,9 +22,6 @@
 
 package ste.cameracontrol.ui;
 
-import java.awt.Toolkit;
-import java.awt.event.WindowEvent;
-
 /**
  *
  * @author ste
@@ -49,7 +46,8 @@ public class CameraControlWindow extends javax.swing.JFrame {
         nameLabel = new javax.swing.JLabel();
         label2 = new javax.swing.JLabel();
         statusLabel = new javax.swing.JLabel();
-        closeButton = new javax.swing.JButton();
+        commandToolbar = new javax.swing.JToolBar();
+        shootButton = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Camera connection status");
@@ -70,12 +68,19 @@ public class CameraControlWindow extends javax.swing.JFrame {
         statusLabel.setText("---");
         statusLabel.setName("statusLabel"); // NOI18N
 
-        closeButton.setText("Close");
-        closeButton.addActionListener(new java.awt.event.ActionListener() {
+        commandToolbar.setFloatable(false);
+        commandToolbar.setRollover(true);
+
+        shootButton.setText("Shoot");
+        shootButton.setFocusable(false);
+        shootButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        shootButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        shootButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                closeButtonActionPerformed(evt);
+                shootButtonActionPerformed(evt);
             }
         });
+        commandToolbar.add(shootButton);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -90,11 +95,8 @@ public class CameraControlWindow extends javax.swing.JFrame {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addComponent(statusLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(nameLabel, javax.swing.GroupLayout.DEFAULT_SIZE, 311, Short.MAX_VALUE))
-                .addContainerGap(15, Short.MAX_VALUE))
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap(319, Short.MAX_VALUE)
-                .addComponent(closeButton)
                 .addContainerGap())
+            .addComponent(commandToolbar, javax.swing.GroupLayout.DEFAULT_SIZE, 415, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -107,20 +109,16 @@ public class CameraControlWindow extends javax.swing.JFrame {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(label2)
                     .addComponent(statusLabel))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 19, Short.MAX_VALUE)
-                .addComponent(closeButton)
-                .addContainerGap())
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 35, Short.MAX_VALUE)
+                .addComponent(commandToolbar, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE))
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void closeButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_closeButtonActionPerformed
-        dispose();
-        Toolkit.getDefaultToolkit().getSystemEventQueue().postEvent(
-            new WindowEvent(this, WindowEvent.WINDOW_CLOSING)
-        );
-    }//GEN-LAST:event_closeButtonActionPerformed
+    private void shootButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_shootButtonActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_shootButtonActionPerformed
 
     /**
     * @param args the command line arguments
@@ -134,10 +132,11 @@ public class CameraControlWindow extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton closeButton;
+    private javax.swing.JToolBar commandToolbar;
     private javax.swing.JLabel label1;
     private javax.swing.JLabel label2;
     private javax.swing.JLabel nameLabel;
+    private javax.swing.JButton shootButton;
     private javax.swing.JLabel statusLabel;
     // End of variables declaration//GEN-END:variables
 
