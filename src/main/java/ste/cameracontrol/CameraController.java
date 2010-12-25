@@ -27,6 +27,13 @@ import ch.ntb.usb.Device;
 import ch.ntb.usb.USB;
 import ch.ntb.usb.UsbDevice;
 import java.util.ArrayList;
+import java.util.List;
+import ste.ptp.DeviceInfo;
+import ste.ptp.PTPException;
+import ste.ptp.Response;
+import ste.ptp.eos.EosEvent;
+import ste.ptp.eos.EosEventFormat;
+import ste.ptp.eos.EosInitiator;
 
 /**
  * This class is the centralized controlled of the camera. It controls all
@@ -104,6 +111,74 @@ public class CameraController implements Runnable {
     }
 
     /**
+     * Retrieves and prints on the standard output the device capabilities of
+     * the camera.
+     * 
+     * @throws PTPException in case of errors
+     */
+    public void devinfo() throws PTPException {
+        EosInitiator dev = startCamera(false);
+
+        //
+        // If the camera is not found we should not be here (an exception is
+        // thrown).
+        //
+        DeviceInfo info = dev.getDeviceInfo();
+
+        info.dump(System.out);
+        //
+        // no session to close!
+        //
+    }
+
+    /**
+     * Retrieves camera's events and dispatches them to the listeners.
+     *
+     * @throws PTPException in case of not recoverable errors
+     */
+    public void getEvents()
+    throws PTPException {
+        EosInitiator dev = startCamera(true);
+
+        List<EosEvent> events = dev.checkEvents();
+
+        System.out.println("Events:");
+        if (events.isEmpty()) {
+             System.out.println("no events found");
+        }
+
+        for (EosEvent event: events) {
+            System.out.println(EosEventFormat.format(event));
+        }
+
+        dev.closeSession();
+    }
+
+    /**
+     * Command the camera to take a picture. If an error occurs, a PTPException
+     * is thrown.
+     *
+     * @throws PTPException in case of errors
+     */
+    public void shoot() throws PTPException {
+        EosInitiator dev = startCamera(true);
+
+        //
+        // If the camera is not found we should not be here (an exception is
+        // thrown).
+        //
+        int status = dev.initiateCapture (0, 0);
+
+        if (status != Response.OK) {
+            // FIXME -- gets replaced with the better scheme
+            System.out.print   ("Can't initiate capture: ");
+            System.out.println (dev.getResponseString (status));
+        }
+
+        dev.closeSession();
+    }
+
+    /**
      * Runs the camera detecting monitor (required by Runnable)
      */
     @Override
@@ -164,6 +239,50 @@ public class CameraController implements Runnable {
                          dev.getDescriptor().getProductId()
                      );
             cameraConnected = true;
+        }
+    }
+
+    private EosInitiator startCamera()
+    throws PTPException {
+        return startCamera(true);
+    }
+
+    private EosInitiator startCamera(boolean session)
+    throws PTPException {
+        Device dev = null;
+        EosInitiator retval;
+
+        UsbDevice usbDevice = connection.findCamera();
+
+        if (usbDevice != null) {
+
+            dev = USB.getDevice(
+                             usbDevice.getDescriptor().getVendorId(),
+                             usbDevice.getDescriptor().getProductId()
+                         );
+        }
+
+        if (dev == null) {
+            System.err.println("Camera not available");
+            System.exit(1);
+        }
+        retval = new EosInitiator(dev);
+
+        if (session) {
+            retval.openSession();
+        }
+
+        System.out.print("PTP device at ");
+        System.out.println(dev);
+
+        return retval;
+    }
+
+    static void closeSession(EosInitiator dev) {
+        try {
+            dev.closeSession();
+        } catch (Exception e) {
+            // ignore everything!
         }
     }
 }
