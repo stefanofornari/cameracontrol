@@ -23,11 +23,13 @@
 
 package ste.cameracontrol;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import ch.ntb.usb.Device;
 import ch.ntb.usb.USB;
 import ch.ntb.usb.UsbDevice;
-import java.util.ArrayList;
-import java.util.List;
+
 import ste.ptp.DeviceInfo;
 import ste.ptp.PTPException;
 import ste.ptp.Response;
@@ -169,13 +171,15 @@ public class CameraController implements Runnable {
         //
         int status = dev.initiateCapture (0, 0);
 
-        if (status != Response.OK) {
-            // FIXME -- gets replaced with the better scheme
-            System.out.print   ("Can't initiate capture: ");
-            System.out.println (dev.getResponseString (status));
-        }
-
         dev.closeSession();
+
+        if (status != Response.OK) {
+            throw new PTPException(
+                "Can't initiate capture: " + dev.getResponseString (status),
+                status
+            );
+
+        }
     }
 
     /**
@@ -255,7 +259,6 @@ public class CameraController implements Runnable {
         UsbDevice usbDevice = connection.findCamera();
 
         if (usbDevice != null) {
-
             dev = USB.getDevice(
                              usbDevice.getDescriptor().getVendorId(),
                              usbDevice.getDescriptor().getProductId()
@@ -263,8 +266,7 @@ public class CameraController implements Runnable {
         }
 
         if (dev == null) {
-            System.err.println("Camera not available");
-            System.exit(1);
+            throw new PTPException("Camera not available");
         }
         retval = new EosInitiator(dev);
 

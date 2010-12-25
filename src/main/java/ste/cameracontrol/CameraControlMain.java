@@ -44,6 +44,7 @@ public class CameraControlMain implements CameraListener {
         controller.addCameraListener(this);
         
         window = new CameraControlWindow();
+        window.setController(controller);
         window.setVisible(true);
 
         controller.startCameraMonitor();

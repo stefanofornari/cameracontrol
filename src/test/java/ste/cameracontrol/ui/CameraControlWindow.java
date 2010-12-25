@@ -22,6 +22,8 @@
 
 package ste.cameracontrol.ui;
 
+import ste.cameracontrol.CameraController;
+
 /**
  * This is a mock of the original class for testing purposes.
  * 
@@ -39,8 +41,12 @@ public class CameraControlWindow {
     public void setStatus(String status) {
         this.status = status;
     }
+
     public void setCameraDisplayName(String camera) {
         this.camera = camera;
+    }
+
+    public void setController(CameraController c) {
     }
 
 }

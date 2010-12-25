@@ -22,11 +22,37 @@
 
 package ste.cameracontrol.ui;
 
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import javax.swing.Action;
+import javax.swing.Box;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.UIManager;
+import org.jdesktop.swingx.JXCollapsiblePane;
+import org.jdesktop.swingx.JXDialog;
+
+import ste.cameracontrol.CameraController;
+import ste.ptp.PTPException;
+
 /**
  *
  * @author ste
  */
 public class CameraControlWindow extends javax.swing.JFrame {
+
+    /**
+     * The camera controller
+     */
+    private CameraController controller;
 
     /** Creates new form CameraControlWindow */
     public CameraControlWindow() {
@@ -117,7 +143,11 @@ public class CameraControlWindow extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void shootButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_shootButtonActionPerformed
-        // TODO add your handling code here:
+        try {
+            controller.shoot();
+        } catch (PTPException e) {
+            error("Error capturing the picture: " + e.getMessage(), e);
+        }
     }//GEN-LAST:event_shootButtonActionPerformed
 
     /**
@@ -157,5 +187,108 @@ public class CameraControlWindow extends javax.swing.JFrame {
         } else {
             nameLabel.setText("---");
         }
+    }
+
+    /**
+     * @return the controller
+     */
+    public CameraController getController() {
+        return controller;
+    }
+
+    /**
+     * @param controller the controller to set
+     */
+    public void setController(CameraController controller) {
+        this.controller = controller;
+    }
+
+    // --------------------------------------------------------- Private methods
+
+    public void error(final String msg, final Throwable t) {
+        StringWriter sw = new StringWriter();
+        PrintWriter pw = new PrintWriter(sw);
+        t.printStackTrace(pw);
+
+        JLabel icon = new JLabel();
+        icon.setIcon(UIManager.getIcon("OptionPane.errorIcon"));
+
+        JLabel message = new JLabel();
+        if (msg != null) {
+            message.setText(msg + " ");
+        } else {
+            message.setText(t.getMessage() + " ");
+        }
+
+        JTextArea text = new JTextArea(sw.toString(), 60, 80);
+        text.setCaretPosition(0);
+        text.setEditable(false);
+        JScrollPane stext = new JScrollPane(text);
+        stext.setPreferredSize(new Dimension(500, 200));
+
+        Box content = Box.createHorizontalBox();
+        JXDialog dialog = new JXDialog(content);
+
+        JXCollapsiblePane cp = new JXCollapsiblePane(new BorderLayout());
+        cp.setAnimated(false);
+        cp.addPropertyChangeListener(new CollapseListener(dialog));
+        cp.add(stext, BorderLayout.CENTER);
+
+        // get the built-in toggle action
+        Action toggleAction = cp.getActionMap().
+            get(JXCollapsiblePane.TOGGLE_ACTION);
+
+        // use the collapse/expand icons from the JTree UI
+        toggleAction.putValue(
+            JXCollapsiblePane.COLLAPSE_ICON,
+            UIManager.getIcon("Tree.expandedIcon")
+        );
+        toggleAction.putValue(
+           JXCollapsiblePane.EXPAND_ICON,
+           UIManager.getIcon("Tree.collapsedIcon")
+        );
+
+        cp.setCollapsed(true);
+
+        JButton toggle = new JButton (toggleAction);
+        toggle.setText("");
+        toggle.setSize(new Dimension(40,40));
+
+        Box messagePanel = Box.createHorizontalBox();
+        messagePanel.add(message);
+        messagePanel.add(toggle);
+
+        JPanel exceptionPanel = new JPanel(new BorderLayout());
+        exceptionPanel.add(messagePanel, BorderLayout.PAGE_START);
+        exceptionPanel.add(cp, BorderLayout.PAGE_END);
+
+        icon.setAlignmentY(TOP_ALIGNMENT);
+        exceptionPanel.setAlignmentY(TOP_ALIGNMENT);
+        content.add(icon);
+        content.add(Box.createRigidArea(new Dimension(5, 5)));
+        content.add(exceptionPanel);
+
+        // Show the MODAL dialog
+
+        dialog.setModal(true);
+        dialog.pack();
+        dialog.setVisible(true);
+        dialog.setLocationRelativeTo(CameraControlWindow.this);
+    }
+
+    private class CollapseListener implements PropertyChangeListener {
+        public static final String PROPERTY_COLLAPTION_STATE = "collapsed";
+        private JDialog dialog;
+
+        public CollapseListener(JDialog dialog) {
+            this.dialog = dialog;
+        }
+
+        public void propertyChange(PropertyChangeEvent e) {
+            if (PROPERTY_COLLAPTION_STATE.equals(e.getPropertyName())) {
+                dialog.pack();
+            }
+        }
+
     }
 }

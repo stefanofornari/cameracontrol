@@ -29,6 +29,9 @@ import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 import ste.cameracontrol.event.ConnectedEventListener;
+import ste.ptp.PTPException;
+import ste.ptp.Response;
+import ste.ptp.eos.EosInitiator;
 
 /**
  * Unit test for simple App.
@@ -171,8 +174,21 @@ public class CameraControllerTest
         assertEquals(devinfo.getProductId(), l.device.getProductId());
     }
 
-    public void _testShootOK() throws Exception  {
+    public void testShootOK() throws Exception  {
         new CameraController().shoot();
+
+        assertTrue(EosInitiator.invoked.contains("initiateCapture"));
+    }
+
+    public void testShootKO() throws Exception  {
+        EosInitiator.shootError = true;
+
+        try {
+            new CameraController().shoot();
+            fail("Error not thrown");
+        } catch (PTPException e) {
+            assertEquals(Response.GeneralError, e.getErrorCode());
+        }
     }
 
 
