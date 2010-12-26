@@ -24,18 +24,13 @@ package ste.cameracontrol.ui;
 import ch.ntb.usb.USBBusyException;
 import java.io.File;
 import java.io.PrintStream;
-import java.util.List;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.PosixParser;
 import ste.cameracontrol.CameraController;
-import ste.ptp.DeviceInfo;
-import ste.ptp.eos.EosInitiator;
 import ste.ptp.PTPException;
-import ste.ptp.eos.EosEvent;
-import ste.ptp.eos.EosEventFormat;
 
 /**
  * This is a command line tool to access EOS PTP cameras.
@@ -376,51 +371,4 @@ public class CameraControlCLI {
     throws PTPException {
         new CameraController().shoot();
     }
-
-    /*
-    private static void getprop(String argv[], int index)
-    throws PTPException {
-        if (index != (argv.length - 2)) {
-            usage(-1);
-        }
-
-        int propcode;
-        EosInitiator dev;
-        DeviceInfo info;
-
-        propcode = DevicePropDesc.getPropertyCode(argv[index + 1]);
-        if (propcode < 0) {
-            System.err.println("unrecognized property name: "
-                    + argv[index + 1]);
-            System.err.println("'jphoto devinfo' lists device properties");
-            System.exit(1);
-        }
-        dev = startCamera();
-
-        try {
-            info = dev.getDeviceInfo();
-
-            if (!info.supportsProperty(propcode)) {
-                System.err.println("device does not support property: "
-                        + dev.getPropertyName(propcode));
-            } else {
-                DevicePropDesc desc;
-                int status;
-
-                desc = new DevicePropDesc(dev);
-                status = dev.getDevicePropDesc(propcode, desc);
-                if (status == Response.OK) {
-                    desc.dump(System.out);
-                } else {
-                    System.out.print("... can't read ");
-                    System.out.print(dev.getPropertyName(propcode));
-                    System.out.print(", ");
-                    System.out.println(dev.getResponseString(status));
-                }
-            }
-        } finally {
-            closeSession(dev);
-        }
-    }
-    */
 }
