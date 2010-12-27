@@ -52,14 +52,12 @@ public class CameraControlMain implements CameraListener {
 
     @Override
     public void cameraConnected(Device device) {
-        window.setCameraDisplayName(device.getDisplayName());
-        window.setStatus("Camera connected");
+        window.setStatus(device.getDisplayName());
     }
 
     @Override
     public void cameraDisconnected(Device device) {
-        window.setCameraDisplayName("---");
-        window.setStatus("Camera not connected");
+        window.setStatus(null);
     }
 
     public static void main(String[] args) throws Exception {

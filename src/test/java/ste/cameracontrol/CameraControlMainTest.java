@@ -84,14 +84,14 @@ public class CameraControlMainTest extends TestCase {
         window.status = null;
         LibusbJava.init(new CanonEOS1000D(false));
         Thread.sleep(100);
-        assertNotNull(window.status);
+        assertNull(window.status);
     }
 
     public void testCameraNameDetected() throws Exception {
         LibusbJava.init(new CanonEOS1000D(true));
         Thread.sleep(100);
-        assertNotNull(window.camera);
-        assertTrue("found " + window.camera, window.camera.indexOf("1000D") >= 0);
+        assertNotNull(window.status);
+        assertTrue("found " + window.status, window.status.indexOf("1000D") >= 0);
     }
 
 }

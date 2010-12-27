@@ -24,12 +24,15 @@ package ste.cameracontrol.ui;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.Image;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import javax.imageio.ImageIO;
 import javax.swing.Action;
 import javax.swing.Box;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
@@ -48,6 +51,10 @@ import ste.ptp.PTPException;
  * @author ste
  */
 public class CameraControlWindow extends javax.swing.JFrame {
+
+    public static final String ICON_CAMERA_CONNECT    = "images/camera-connect-24x24.png";
+    public static final String ICON_CAMERA_DISCONNECT = "images/camera-disconnect-24x24.png";
+    public static final String ICON_CAMERACONTROL     = "images/camera-control-24x24.png";
 
     /**
      * The camera controller
@@ -68,87 +75,76 @@ public class CameraControlWindow extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        label1 = new javax.swing.JLabel();
-        nameLabel = new javax.swing.JLabel();
-        label2 = new javax.swing.JLabel();
         statusLabel = new javax.swing.JLabel();
-        commandToolbar = new javax.swing.JToolBar();
-        shootButton = new javax.swing.JButton();
+        menuBar = new javax.swing.JMenuBar();
+        menuFile = new javax.swing.JMenu();
+        menuEdit = new javax.swing.JMenu();
+        menuCamera = new javax.swing.JMenu();
+        shootMenuItem = new javax.swing.JMenuItem();
+        menuHelp = new javax.swing.JMenu();
+        aboutMenuItem = new javax.swing.JMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Camera connection status");
         setBackground(javax.swing.UIManager.getDefaults().getColor("window"));
+        setIconImage(getImage(ICON_CAMERACONTROL));
+        setMinimumSize(new java.awt.Dimension(400, 300));
         setName("connectionframe"); // NOI18N
-        setResizable(false);
 
-        label1.setBackground(new java.awt.Color(255, 255, 255));
-        label1.setLabelFor(nameLabel);
-        label1.setText("Camera:");
+        statusLabel.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/camera-connect-24x24.png"))); // NOI18N
+        statusLabel.setText("Status bar");
+        statusLabel.setBorder(javax.swing.BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.RAISED));
+        statusLabel.setPreferredSize(new java.awt.Dimension(300, 32));
+        getContentPane().add(statusLabel, java.awt.BorderLayout.PAGE_END);
 
-        nameLabel.setText("---");
-        nameLabel.setName("nameLabel"); // NOI18N
+        menuFile.setText("File");
+        menuBar.add(menuFile);
 
-        label2.setLabelFor(statusLabel);
-        label2.setText("Status:");
+        menuEdit.setText("Edit");
+        menuBar.add(menuEdit);
 
-        statusLabel.setText("---");
-        statusLabel.setName("statusLabel"); // NOI18N
+        menuCamera.setText("Camera");
 
-        commandToolbar.setFloatable(false);
-        commandToolbar.setRollover(true);
-
-        shootButton.setText("Shoot");
-        shootButton.setFocusable(false);
-        shootButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        shootButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        shootButton.addActionListener(new java.awt.event.ActionListener() {
+        shootMenuItem.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S, java.awt.event.InputEvent.ALT_MASK));
+        shootMenuItem.setText("Shoot");
+        shootMenuItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                shootButtonActionPerformed(evt);
+                shootMenuItemActionPerformed(evt);
             }
         });
-        commandToolbar.add(shootButton);
+        menuCamera.add(shootMenuItem);
 
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
-        getContentPane().setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(label2)
-                    .addComponent(label1))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(statusLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(nameLabel, javax.swing.GroupLayout.DEFAULT_SIZE, 311, Short.MAX_VALUE))
-                .addContainerGap())
-            .addComponent(commandToolbar, javax.swing.GroupLayout.DEFAULT_SIZE, 415, Short.MAX_VALUE)
-        );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(label1)
-                    .addComponent(nameLabel))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(label2)
-                    .addComponent(statusLabel))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 35, Short.MAX_VALUE)
-                .addComponent(commandToolbar, javax.swing.GroupLayout.PREFERRED_SIZE, 25, javax.swing.GroupLayout.PREFERRED_SIZE))
-        );
+        menuBar.add(menuCamera);
+
+        menuHelp.setText("Help");
+
+        aboutMenuItem.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_A, java.awt.event.InputEvent.ALT_MASK));
+        aboutMenuItem.setText("About");
+        aboutMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                aboutMenuItemActionPerformed(evt);
+            }
+        });
+        menuHelp.add(aboutMenuItem);
+
+        menuBar.add(menuHelp);
+
+        setJMenuBar(menuBar);
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void shootButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_shootButtonActionPerformed
+    private void shootMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_shootMenuItemActionPerformed
         try {
             controller.shoot();
         } catch (PTPException e) {
             error("Error capturing the picture: " + e.getMessage(), e);
         }
-    }//GEN-LAST:event_shootButtonActionPerformed
+    }//GEN-LAST:event_shootMenuItemActionPerformed
+
+    private void aboutMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_aboutMenuItemActionPerformed
+        new AboutDialog(this, true).setVisible(true);
+    }//GEN-LAST:event_aboutMenuItemActionPerformed
 
     /**
     * @param args the command line arguments
@@ -162,11 +158,13 @@ public class CameraControlWindow extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JToolBar commandToolbar;
-    private javax.swing.JLabel label1;
-    private javax.swing.JLabel label2;
-    private javax.swing.JLabel nameLabel;
-    private javax.swing.JButton shootButton;
+    private javax.swing.JMenuItem aboutMenuItem;
+    private javax.swing.JMenuBar menuBar;
+    private javax.swing.JMenu menuCamera;
+    private javax.swing.JMenu menuEdit;
+    private javax.swing.JMenu menuFile;
+    private javax.swing.JMenu menuHelp;
+    private javax.swing.JMenuItem shootMenuItem;
     private javax.swing.JLabel statusLabel;
     // End of variables declaration//GEN-END:variables
 
@@ -175,17 +173,11 @@ public class CameraControlWindow extends javax.swing.JFrame {
 
     public void setStatus(String status) {
         if (status != null) {
+            statusLabel.setIcon(getIcon(ICON_CAMERA_CONNECT));
             statusLabel.setText(status);
         } else {
-            statusLabel.setText("---");
-        }
-    }
-
-    public void setCameraDisplayName(String camera) {
-        if (camera != null) {
-            nameLabel.setText(camera);
-        } else {
-            nameLabel.setText("---");
+            statusLabel.setIcon(getIcon(ICON_CAMERA_DISCONNECT));
+            statusLabel.setText("");
         }
     }
 
@@ -290,5 +282,19 @@ public class CameraControlWindow extends javax.swing.JFrame {
             }
         }
 
+    }
+
+    private ImageIcon getIcon(String name) {
+        return new ImageIcon(ClassLoader.getSystemResource(name));
+    }
+
+    private Image getImage(String name) {
+        try {
+            return ImageIO.read(ClassLoader.getSystemResource(name));
+        } catch (Exception e) {
+            error("", e);
+        }
+
+        return null;
     }
 }

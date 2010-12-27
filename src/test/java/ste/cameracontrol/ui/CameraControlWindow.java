@@ -30,7 +30,6 @@ import ste.cameracontrol.CameraController;
  * @author ste
  */
 public class CameraControlWindow {
-    public String camera;
     public String status;
 
     public CameraControlWindow() {
@@ -40,10 +39,6 @@ public class CameraControlWindow {
 
     public void setStatus(String status) {
         this.status = status;
-    }
-
-    public void setCameraDisplayName(String camera) {
-        this.camera = camera;
     }
 
     public void setController(CameraController c) {
