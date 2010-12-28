@@ -25,7 +25,6 @@ package ste.cameracontrol.ui;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Image;
-import java.awt.Toolkit;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.PrintWriter;
@@ -33,6 +32,7 @@ import java.io.StringWriter;
 import javax.imageio.ImageIO;
 import javax.swing.Action;
 import javax.swing.Box;
+import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -56,7 +56,7 @@ public class CameraControlWindow extends javax.swing.JFrame {
     public static final String ICON_CAMERA_CONNECT    = "images/camera-connect-24x24.png";
     public static final String ICON_CAMERA_DISCONNECT = "images/camera-disconnect-24x24.png";
     public static final String ICON_CAMERACONTROL     = "images/camera-control-24x24.png";
-
+    public static final String ICON_ERROR             = "images/error-48x48.png";
     /**
      * The camera controller
      */
@@ -65,8 +65,6 @@ public class CameraControlWindow extends javax.swing.JFrame {
     /** Creates new form CameraControlWindow */
     public CameraControlWindow() {
         initComponents();
-        //Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-
         setLocationRelativeTo(null);
     }
 
@@ -208,14 +206,19 @@ public class CameraControlWindow extends javax.swing.JFrame {
         t.printStackTrace(pw);
 
         JLabel icon = new JLabel();
-        icon.setIcon(UIManager.getIcon("OptionPane.errorIcon"));
+        Icon img = UIManager.getIcon("OptionPane.errorIcon");
+        if (img == null) {
+            img = getIcon(ICON_ERROR);
+        }
+        icon.setIcon(img);
 
         JLabel message = new JLabel();
         if (msg != null) {
-            message.setText(msg + " ");
+            message.setText("<html>" + msg + "</html>");
         } else {
-            message.setText(t.getMessage() + " ");
+            message.setText("<html>" + t.getMessage() + "</html>");
         }
+        message.setPreferredSize(new Dimension(200, 50));
 
         JTextArea text = new JTextArea(sw.toString(), 60, 80);
         text.setCaretPosition(0);
@@ -227,6 +230,7 @@ public class CameraControlWindow extends javax.swing.JFrame {
         JXDialog dialog = new JXDialog(content);
         dialog.setTitle("Error");
         dialog.setIconImage(getIconImage());
+        //dialog.setMaximumSize(new Dimension(400, 200));
 
         JXCollapsiblePane cp = new JXCollapsiblePane(new BorderLayout());
         cp.setAnimated(false);
