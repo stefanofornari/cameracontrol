@@ -32,7 +32,6 @@ import ch.ntb.usb.UsbDevice;
 
 import ste.ptp.DeviceInfo;
 import ste.ptp.PTPException;
-import ste.ptp.Response;
 import ste.ptp.eos.EosEvent;
 import ste.ptp.eos.EosEventFormat;
 import ste.ptp.eos.EosInitiator;
@@ -55,6 +54,10 @@ public class CameraController implements Runnable {
     private boolean cameraMonitorActive;
     private Device camera;
     private boolean cameraConnected;
+    //
+    // I need to find a better name for this...
+    //
+    private EosInitiator device;
 
     /**
      * Creates a new CameraController
@@ -118,13 +121,11 @@ public class CameraController implements Runnable {
      * @throws PTPException in case of errors
      */
     public void devinfo() throws PTPException {
-        EosInitiator dev = startCamera(false);
-
         //
         // If the camera is not found we should not be here (an exception is
         // thrown).
         //
-        DeviceInfo info = dev.getDeviceInfo();
+        DeviceInfo info = device.getDeviceInfo();
 
         info.dump(System.out);
         //
@@ -139,9 +140,7 @@ public class CameraController implements Runnable {
      */
     public void getEvents()
     throws PTPException {
-        EosInitiator dev = startCamera(true);
-
-        List<EosEvent> events = dev.checkEvents();
+        List<EosEvent> events = device.checkEvents();
 
         System.out.println("Events:");
         if (events.isEmpty()) {
@@ -151,8 +150,6 @@ public class CameraController implements Runnable {
         for (EosEvent event: events) {
             System.out.println(EosEventFormat.format(event));
         }
-
-        dev.closeSession();
     }
 
     /**
@@ -162,18 +159,8 @@ public class CameraController implements Runnable {
      * @throws PTPException in case of errors
      */
     public void shoot() throws PTPException {
-        EosInitiator dev = startCamera(true);
-
-        //
-        // If the camera is not found we should not be here (an exception is
-        // thrown).
-        //
-        try {
-            dev.initiateCapture (0, 0);
-            getEvents();
-        } finally {
-            dev.closeSession();
-        }
+        device.initiateCapture (0, 0);
+        getEvents();
     }
 
     /**
@@ -240,9 +227,9 @@ public class CameraController implements Runnable {
         }
     }
 
-    private EosInitiator startCamera()
+    public void startCamera()
     throws PTPException {
-        return startCamera(true);
+        startCamera(true);
     }
 
     /**
@@ -258,10 +245,8 @@ public class CameraController implements Runnable {
      * @throws cameraBusyException in case a session is still active
      * @throws CameraNotAvailableException in case no cameras are connected
      */
-    private EosInitiator startCamera(boolean session)
+    public void startCamera(boolean session)
     throws PTPException {
-        EosInitiator retval;
-
         checkCamera();
         if (camera == null) {
             //
@@ -270,16 +255,14 @@ public class CameraController implements Runnable {
             throw new PTPException("Camera not available");
         }
         
-        retval = new EosInitiator(camera);
+        device = new EosInitiator(camera);
 
         if (session) {
-            retval.openSession();
+            device.openSession();
         }
 
         System.out.print("PTP device at ");
         System.out.println(camera);
-
-        return retval;
     }
 
     static void closeSession(EosInitiator dev) {

@@ -25,6 +25,7 @@ package ste.cameracontrol;
 import ch.ntb.usb.Device;
 import ch.ntb.usb.DeviceDatabase;
 import ste.cameracontrol.ui.CameraControlWindow;
+import ste.ptp.PTPException;
 
 /**
  * Hello world!
@@ -52,6 +53,11 @@ public class CameraControlMain implements CameraListener {
 
     @Override
     public void cameraConnected(Device device) {
+        try {
+            controller.startCamera();
+        } catch (PTPException e) {
+            window.error(null, e);
+        }
         window.setStatus(device.getDisplayName());
     }
 

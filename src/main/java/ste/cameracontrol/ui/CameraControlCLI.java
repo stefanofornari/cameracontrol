@@ -48,6 +48,8 @@ public class CameraControlCLI {
     static private String device;
     static private boolean overwrite;
     static private int storageId;
+
+    static private CameraController controller = null;
         
     private static void usage(int status) {
         System.err.println("Usage: jphoto command [options]");
@@ -237,6 +239,9 @@ public class CameraControlCLI {
         if (args.length == 0) {
             usage(-1);
         }
+
+        controller = new CameraController();
+        controller.startCamera();
         
         Options options = new Options();
         options.addOption(
@@ -358,17 +363,17 @@ public class CameraControlCLI {
 
     private static void devinfo()
     throws PTPException {
-        new CameraController().devinfo();
+        controller.devinfo();
     }
 
     private static void getEvents()
     throws PTPException {
-        new CameraController().getEvents();
+        controller.getEvents();
     }
 
 
     private static void shoot()
     throws PTPException {
-        new CameraController().shoot();
+        controller.shoot();
     }
 }

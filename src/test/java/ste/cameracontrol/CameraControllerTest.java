@@ -175,7 +175,9 @@ public class CameraControllerTest
     }
 
     public void testShootOK() throws Exception  {
-        new CameraController().shoot();
+        CONTROLLER = new CameraController();
+        CONTROLLER.startCamera();
+        CONTROLLER.shoot();
 
         assertTrue(EosInitiator.invoked.contains("initiateCapture"));
     }
@@ -184,7 +186,9 @@ public class CameraControllerTest
         EosInitiator.shootError = true;
 
         try {
-            new CameraController().shoot();
+            CONTROLLER = new CameraController();
+            CONTROLLER.startCamera();
+            CONTROLLER.shoot();
             fail("Error not thrown");
         } catch (PTPException e) {
             assertEquals(Response.GeneralError, e.getErrorCode());
