@@ -25,6 +25,7 @@ package ste.cameracontrol.ui;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Image;
+import java.awt.Toolkit;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.PrintWriter;
@@ -64,6 +65,9 @@ public class CameraControlWindow extends javax.swing.JFrame {
     /** Creates new form CameraControlWindow */
     public CameraControlWindow() {
         initComponents();
+        //Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+
+        setLocationRelativeTo(null);
     }
 
     /** This method is called from within the constructor to
@@ -90,6 +94,7 @@ public class CameraControlWindow extends javax.swing.JFrame {
         setIconImage(getImage(ICON_CAMERACONTROL));
         setMinimumSize(new java.awt.Dimension(400, 300));
         setName("connectionframe"); // NOI18N
+        setResizable(false);
 
         statusLabel.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/camera-connect-24x24.png"))); // NOI18N
         statusLabel.setText("Status bar");
@@ -220,6 +225,8 @@ public class CameraControlWindow extends javax.swing.JFrame {
 
         Box content = Box.createHorizontalBox();
         JXDialog dialog = new JXDialog(content);
+        dialog.setTitle("Error");
+        dialog.setIconImage(getIconImage());
 
         JXCollapsiblePane cp = new JXCollapsiblePane(new BorderLayout());
         cp.setAnimated(false);
@@ -264,8 +271,8 @@ public class CameraControlWindow extends javax.swing.JFrame {
 
         dialog.setModal(true);
         dialog.pack();
+        dialog.setLocationRelativeTo(this);
         dialog.setVisible(true);
-        dialog.setLocationRelativeTo(CameraControlWindow.this);
     }
 
     private class CollapseListener implements PropertyChangeListener {
