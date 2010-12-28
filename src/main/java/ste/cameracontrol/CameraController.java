@@ -101,7 +101,6 @@ public class CameraController implements Runnable {
     public synchronized void startCameraMonitor() {
         if (!cameraMonitorActive) {
             new Thread(this).start();
-            cameraMonitorActive = true;
         }
     }
 
@@ -171,6 +170,7 @@ public class CameraController implements Runnable {
         //
         try {
             dev.initiateCapture (0, 0);
+            getEvents();
         } finally {
             dev.closeSession();
         }
@@ -181,12 +181,12 @@ public class CameraController implements Runnable {
      */
     @Override
     public void run() {
-        checkCamera();
+        cameraMonitorActive = true;
         setConnected();
-
         while (cameraMonitorActive) {
             boolean cameraConnectedOld = cameraConnected;
-            checkCamera();
+
+            checkCamera(); 
             if (cameraConnectedOld != cameraConnected) {
                 setConnected();
             }
@@ -245,31 +245,39 @@ public class CameraController implements Runnable {
         return startCamera(true);
     }
 
+    /**
+     * Starts the connection with the camera. If session is true, a new session
+     * is established. If session is true, but a session has been already
+     * established, a BusyException is thrown.
+     * 
+     * @param session true if a new session should be established
+     *
+     * @return the communication endpoint
+     *
+     * @throws PTPException in case of PTP errors
+     * @throws cameraBusyException in case a session is still active
+     * @throws CameraNotAvailableException in case no cameras are connected
+     */
     private EosInitiator startCamera(boolean session)
     throws PTPException {
-        Device dev = null;
         EosInitiator retval;
 
-        UsbDevice usbDevice = connection.findCamera();
-
-        if (usbDevice != null) {
-            dev = USB.getDevice(
-                             usbDevice.getDescriptor().getVendorId(),
-                             usbDevice.getDescriptor().getProductId()
-                         );
-        }
-
-        if (dev == null) {
+        checkCamera();
+        if (camera == null) {
+            //
+            // No cameras found
+            //
             throw new PTPException("Camera not available");
         }
-        retval = new EosInitiator(dev);
+        
+        retval = new EosInitiator(camera);
 
         if (session) {
             retval.openSession();
         }
 
         System.out.print("PTP device at ");
-        System.out.println(dev);
+        System.out.println(camera);
 
         return retval;
     }
