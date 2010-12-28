@@ -21,8 +21,9 @@
  */
 package ste.ptp.eos;
 
-import ch.ntb.usb.Device;
 import java.util.ArrayList;
+import ch.ntb.usb.Device;
+import ste.ptp.PTPException;
 import ste.ptp.Response;
 
 /**
@@ -52,10 +53,12 @@ public class EosInitiator {
         inSession = false;
     }
 
-    public int initiateCapture(int i1, int i2) {
+    public void initiateCapture(int i1, int i2) throws PTPException {
         invoked.add("initiateCapture");
-        
-        return (shootError) ? Response.GeneralError : Response.OK;
+
+        if (shootError) {
+            throw new PTPException("Error!", Response.GeneralError);
+        }
     }
 
     public String getResponseString(int i) {
