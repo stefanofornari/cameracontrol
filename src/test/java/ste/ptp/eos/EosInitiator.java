@@ -23,6 +23,7 @@ package ste.ptp.eos;
 
 import java.util.ArrayList;
 import ch.ntb.usb.Device;
+import java.util.List;
 import ste.ptp.PTPException;
 import ste.ptp.Response;
 
@@ -59,6 +60,10 @@ public class EosInitiator {
         if (shootError) {
             throw new PTPException("Error!", Response.GeneralError);
         }
+    }
+
+    public List<EosEvent> checkEvents() {
+        return new ArrayList<EosEvent>();
     }
 
     public String getResponseString(int i) {
