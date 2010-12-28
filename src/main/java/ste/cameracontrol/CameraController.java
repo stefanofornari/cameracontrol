@@ -169,16 +169,10 @@ public class CameraController implements Runnable {
         // If the camera is not found we should not be here (an exception is
         // thrown).
         //
-        int status = dev.initiateCapture (0, 0);
-
-        dev.closeSession();
-
-        if (status != Response.OK) {
-            throw new PTPException(
-                "Can't initiate capture: " + dev.getResponseString (status),
-                status
-            );
-
+        try {
+            dev.initiateCapture (0, 0);
+        } finally {
+            dev.closeSession();
         }
     }
 
