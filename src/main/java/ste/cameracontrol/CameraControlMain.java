@@ -25,6 +25,7 @@ package ste.cameracontrol;
 import ch.ntb.usb.Device;
 import ch.ntb.usb.DeviceDatabase;
 import ste.cameracontrol.ui.CameraControlWindow;
+import ste.ptp.PTPBusyException;
 import ste.ptp.PTPException;
 
 /**
@@ -55,13 +56,18 @@ public class CameraControlMain implements CameraListener {
     public void cameraConnected(Device device) {
         //
         // Soon after the USB device is detected, the system may keep the device
-        // busy for a little while. We wait a few seconds before trying to
-        // get the connecion
+        // busy for a little while, Therefore we try 3 times before giving up.
         //
-        try {
-            controller.startCamera();
-        } catch (Exception e) {
-            window.error(null, e);
+        for (int i = 0; i<3; ++i) {
+            try {
+                controller.startCamera();
+            } catch (PTPBusyException e) {
+                continue;
+            } catch (Exception e) {
+                window.setStatus(null);
+                window.error(null, e);
+                return;
+            }
         }
         window.setStatus(device.getDisplayName());
     }
