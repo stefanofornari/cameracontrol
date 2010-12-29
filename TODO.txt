@@ -1,0 +1,1 @@
+- Use DevInfo instead of DeviceDatabase to get the camera model name
