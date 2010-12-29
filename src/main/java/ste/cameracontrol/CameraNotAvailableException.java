@@ -22,11 +22,13 @@
 
 package ste.cameracontrol;
 
+import ste.ptp.PTPException;
+
 /**
  *
  * @author ste
  */
-public class CameraNotAvailableException extends Exception {
+public class CameraNotAvailableException extends PTPException {
 
     /**
      * Creates a new instance of <code>CameraBusyException</code> without detail message.

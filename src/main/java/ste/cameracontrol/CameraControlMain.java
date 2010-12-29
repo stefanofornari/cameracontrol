@@ -53,9 +53,14 @@ public class CameraControlMain implements CameraListener {
 
     @Override
     public void cameraConnected(Device device) {
+        //
+        // Soon after the USB device is detected, the system may keep the device
+        // busy for a little while. We wait a few seconds before trying to
+        // get the connecion
+        //
         try {
             controller.startCamera();
-        } catch (PTPException e) {
+        } catch (Exception e) {
             window.error(null, e);
         }
         window.setStatus(device.getDisplayName());

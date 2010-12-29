@@ -121,6 +121,7 @@ public class CameraController implements Runnable {
      * @throws PTPException in case of errors
      */
     public void devinfo() throws PTPException {
+        sanityCheck();
         //
         // If the camera is not found we should not be here (an exception is
         // thrown).
@@ -140,6 +141,7 @@ public class CameraController implements Runnable {
      */
     public void getEvents()
     throws PTPException {
+        sanityCheck();
         List<EosEvent> events = device.checkEvents();
 
         System.out.println("Events:");
@@ -159,6 +161,7 @@ public class CameraController implements Runnable {
      * @throws PTPException in case of errors
      */
     public void shoot() throws PTPException {
+        sanityCheck();
         device.initiateCapture (0, 0);
         getEvents();
     }
@@ -265,11 +268,19 @@ public class CameraController implements Runnable {
         System.out.println(camera);
     }
 
-    static void closeSession(EosInitiator dev) {
+    public void releaseCamera() {
         try {
-            dev.closeSession();
+            device.closeSession();
         } catch (Exception e) {
             // ignore everything!
+        }
+    }
+
+    // --------------------------------------------------------- private methods
+
+    private void sanityCheck() throws PTPException {
+        if (device == null) {
+            throw new CameraNotAvailableException();
         }
     }
 }

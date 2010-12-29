@@ -55,7 +55,7 @@ public class CameraControlWindow extends javax.swing.JFrame {
 
     public static final String ICON_CAMERA_CONNECT    = "images/camera-connect-24x24.png";
     public static final String ICON_CAMERA_DISCONNECT = "images/camera-disconnect-24x24.png";
-    public static final String ICON_CAMERACONTROL     = "images/camera-control-24x24.png";
+    public static final String ICON_CAMERACONTROL     = "images/camera-control.png";
     public static final String ICON_ERROR             = "images/error-48x48.png";
     /**
      * The camera controller
