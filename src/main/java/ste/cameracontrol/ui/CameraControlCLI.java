@@ -368,7 +368,7 @@ public class CameraControlCLI {
 
     private static void getEvents()
     throws PTPException {
-        controller.getEvents();
+        controller.dumpEvents();
     }
 
 

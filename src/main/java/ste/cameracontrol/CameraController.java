@@ -29,10 +29,13 @@ import java.util.List;
 import ch.ntb.usb.Device;
 import ch.ntb.usb.USB;
 import ch.ntb.usb.UsbDevice;
+import java.io.FileOutputStream;
 
 import ste.ptp.DeviceInfo;
+import ste.ptp.FileData;
 import ste.ptp.PTPException;
 import ste.ptp.eos.EosEvent;
+import ste.ptp.eos.EosEventConstants;
 import ste.ptp.eos.EosEventFormat;
 import ste.ptp.eos.EosInitiator;
 
@@ -139,7 +142,7 @@ public class CameraController implements Runnable {
      *
      * @throws PTPException in case of not recoverable errors
      */
-    public void getEvents()
+    public void dumpEvents()
     throws PTPException {
         sanityCheck();
         List<EosEvent> events = device.checkEvents();
@@ -163,8 +166,55 @@ public class CameraController implements Runnable {
     public void shoot() throws PTPException {
         sanityCheck();
         device.initiateCapture (0, 0);
-        getEvents();
+
+        ArrayList<EosEvent> objects = new ArrayList<EosEvent>();
+        for (int i=0; i<5; ++i) {
+            List<EosEvent> events = device.checkEvents();
+            for (EosEvent e: events) {
+                if (e.getCode() == EosEventConstants.EosEventObjectAddedEx) {
+                    objects.add(e);
+                }
+            }
+
+            try {
+                Thread.sleep(2000);
+            } catch (Exception e) {
+                //
+                // What to do???
+                //
+            }
+        }
+
+        for (EosEvent e: objects) {
+            downloadObject(e.getIntParam(1), e.getIntParam(5), e.getStringParam(6));
+        }
     }
+
+    //
+    // TODO: this is just a spike...
+    //
+    public void downloadObject(int id, int size, String fileName)
+    throws PTPException {
+
+        System.out.println("Downloading " + fileName);
+        FileOutputStream file = null;
+        try {
+            file = new FileOutputStream(fileName);
+
+            FileData data = new FileData(file, device);
+            device.getPartialObject(id, 0, size, data);
+            device.transferComplete(id);
+        } catch (Exception e) {
+            throw new PTPException("Unable to store the object", e);
+        } finally {
+            if (file != null) {
+                try { file.close(); } catch (Exception e) {}
+            }
+        }
+    }
+
+
+
 
     /**
      * Runs the camera detecting monitor (required by Runnable)

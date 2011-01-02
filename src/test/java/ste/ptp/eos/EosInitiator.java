@@ -24,6 +24,8 @@ package ste.ptp.eos;
 import java.util.ArrayList;
 import ch.ntb.usb.Device;
 import java.util.List;
+import ste.ptp.Data;
+import ste.ptp.NameFactory;
 import ste.ptp.PTPException;
 import ste.ptp.Response;
 
@@ -32,7 +34,7 @@ import ste.ptp.Response;
  * 
  * @author ste
  */
-public class EosInitiator {
+public class EosInitiator extends NameFactory {
     public static Device device = null;
     public static boolean inSession = false;
     public static boolean shootError = false;
@@ -69,5 +71,9 @@ public class EosInitiator {
     public String getResponseString(int i) {
         return "error";
     }
+
+    public void getPartialObject(int oid, int offset, int size, Data data) {}
+
+    public void transferComplete(int oid) {}
 
 }
