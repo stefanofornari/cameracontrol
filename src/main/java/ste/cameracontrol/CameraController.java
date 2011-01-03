@@ -207,7 +207,7 @@ public class CameraController implements Runnable {
      *
      * @throws PTPException in case of errors
      */
-    public void shootAndCapture() throws PTPException {
+    public void shootAndDownload() throws PTPException {
         sanityCheck();
         device.initiateCapture (0, 0);
 
@@ -249,7 +249,7 @@ public class CameraController implements Runnable {
             device.getPartialObject(id, 0, size, data);
             device.transferComplete(id);
         } catch (Exception e) {
-            throw new PTPException("Unable to store the object", e);
+            throw new PTPException("Unable to store the object: " + e.getMessage(), e);
         } finally {
             if (file != null) {
                 try { file.close(); } catch (Exception e) {}

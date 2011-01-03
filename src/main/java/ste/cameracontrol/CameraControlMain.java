@@ -24,9 +24,9 @@ package ste.cameracontrol;
 
 import ch.ntb.usb.Device;
 import ch.ntb.usb.DeviceDatabase;
+import java.io.File;
 import ste.cameracontrol.ui.CameraControlWindow;
 import ste.ptp.PTPBusyException;
-import ste.ptp.PTPException;
 
 /**
  * Hello world!
@@ -42,7 +42,27 @@ public class CameraControlMain implements CameraListener {
     public CameraControlMain() {
         deviceDatabase = new DeviceDatabase();
 
-        controller = new CameraController();
+        Configuration c = new Configuration();
+        for (String property: System.getProperties().stringPropertyNames()) {
+            if (property.startsWith("ste.")) {
+                c.put(property, System.getProperty(property));
+            }
+        }
+
+        //
+        // If the image directory is not configured, the default is used.
+        // If the image directory does not exists, it is created.
+        //
+        String imageDirName = c.getImageDir();
+        if (imageDirName == null) {
+            imageDirName = "images";
+        }
+        File imageDir = new File(imageDirName);
+        if (!imageDir.exists()) {
+            imageDir.mkdirs();
+        }
+        
+        controller = new CameraController(c);
         controller.addCameraListener(this);
         
         window = new CameraControlWindow();

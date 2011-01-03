@@ -139,7 +139,7 @@ public class CameraControlWindow extends javax.swing.JFrame {
 
     private void shootMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_shootMenuItemActionPerformed
         try {
-            controller.shoot();
+            controller.shootAndDownload();
         } catch (PTPException e) {
             error("Error capturing the picture: " + e.getMessage(), e);
         }

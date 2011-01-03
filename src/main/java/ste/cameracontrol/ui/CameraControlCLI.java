@@ -30,6 +30,7 @@ import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.PosixParser;
 import ste.cameracontrol.CameraController;
+import ste.cameracontrol.Configuration;
 import ste.ptp.PTPException;
 
 /**
@@ -240,9 +241,6 @@ public class CameraControlCLI {
             usage(-1);
         }
 
-        controller = new CameraController();
-        controller.startCamera();
-        
         Options options = new Options();
         options.addOption(
             OptionBuilder.withLongOpt( "camera" )
@@ -265,7 +263,11 @@ public class CameraControlCLI {
             }
             if (line.hasOption('d')) {
                 directory = new File(line.getOptionValue('d'));
+                
+            } else {
+                directory = new File("images");
             }
+
             if (line.hasOption('h')) {
                 usage(0);
                         System.exit(0);
@@ -281,6 +283,15 @@ public class CameraControlCLI {
             if (line.hasOption('w')) {
                 overwrite = true;
             }
+
+            if (!directory.exists()) {
+                directory.mkdirs();
+            }
+
+            Configuration c = new Configuration();
+            c.setImageDir(directory.getAbsolutePath());
+            controller = new CameraController(c);
+            controller.startCamera();
 
             for (String arg: line.getArgs()) {
 
@@ -374,6 +385,6 @@ public class CameraControlCLI {
 
     private static void shoot()
     throws PTPException {
-        controller.shoot();
+        controller.shootAndDownload();
     }
 }

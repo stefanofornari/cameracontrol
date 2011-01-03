@@ -270,7 +270,7 @@ public class CameraControllerTest
 
         CONTROLLER = new CameraController(CONFIG);
         CONTROLLER.startCamera();
-        CONTROLLER.shootAndCapture();
+        CONTROLLER.shootAndDownload();
 
         assertTrue(EosInitiator.invoked.contains("initiateCapture"));
         

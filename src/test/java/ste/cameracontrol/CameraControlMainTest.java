@@ -24,6 +24,7 @@ package ste.cameracontrol;
 
 import ch.ntb.usb.LibusbJava;
 import ch.ntb.usb.devinf.CanonEOS1000D;
+import java.io.File;
 import java.lang.reflect.Field;
 import junit.framework.TestCase;
 
@@ -48,6 +49,8 @@ public class CameraControlMainTest extends TestCase {
 
         LibusbJava.init(new CanonEOS1000D(false));
 
+        System.setProperty(Configuration.CONFIG_IMAGEDIR, "/tmp/cameracontrol");
+
         cameraControl = new CameraControlMain();
 
         window = getWindow();
@@ -67,6 +70,19 @@ public class CameraControlMainTest extends TestCase {
         f.setAccessible(true);
 
         return (CameraControlWindow)f.get(cameraControl);
+    }
+    
+    private CameraController getController() throws Exception {
+        Field f = CameraControlMain.class.getDeclaredField("controller");
+        f.setAccessible(true);
+
+        return (CameraController)f.get(cameraControl);
+    }
+
+    public void testControllerConfiguration() throws Exception {
+        Configuration c = getController().getConfiguration();
+        assertNotNull(c.getImageDir());
+        assertTrue((new File(c.getImageDir())).exists());
     }
 
     public void testCameraConnected() throws Exception {
