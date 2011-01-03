@@ -50,4 +50,4 @@ cd "$CURDIR"
 LANG=en_US.UTF-8
 
 echo "Using $JAVA_CMD"
-$JAVA_CMD -Djava.library.path="$CMD_HOME/lib" -Dswing.defaultlaf=com.sun.java.swing.plaf.gtk.GTKLookAndFeel -Dste.cameracontrol.image-dir=images "$@" ste.cameracontrol.CameraControlMain &
+$JAVA_CMD -Djava.library.path="$CMD_HOME/lib" -Dswing.defaultlaf=com.sun.java.swing.plaf.gtk.GTKLookAndFeel -Dste.cameracontrol.image-dir="$CMD_HOME/images" "$@" ste.cameracontrol.CameraControlMain &
