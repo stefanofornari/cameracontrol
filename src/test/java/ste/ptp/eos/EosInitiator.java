@@ -40,6 +40,7 @@ public class EosInitiator extends NameFactory {
     public static boolean shootError = false;
 
     public static ArrayList<String> invoked = new ArrayList<String>();
+    public static ArrayList<EosEvent> events = new ArrayList<EosEvent>();
 
     public EosInitiator(Device device) {
         this.device = device;
@@ -65,15 +66,19 @@ public class EosInitiator extends NameFactory {
     }
 
     public List<EosEvent> checkEvents() {
-        return new ArrayList<EosEvent>();
+        return events;
     }
 
     public String getResponseString(int i) {
         return "error";
     }
 
-    public void getPartialObject(int oid, int offset, int size, Data data) {}
+    public void getPartialObject(int oid, int offset, int size, Data data) {
+        invoked.add("getPartialObject");
+    }
 
-    public void transferComplete(int oid) {}
+    public void transferComplete(int oid) {
+        invoked.add("transferComplete");
+    }
 
 }

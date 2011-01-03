@@ -24,6 +24,7 @@ package ste.cameracontrol;
 
 import ch.ntb.usb.LibusbJava;
 import ch.ntb.usb.devinf.CanonEOS1000D;
+import java.io.File;
 import java.lang.reflect.Method;
 import junit.framework.Test;
 import junit.framework.TestCase;
@@ -31,6 +32,7 @@ import junit.framework.TestSuite;
 import ste.cameracontrol.event.ConnectedEventListener;
 import ste.ptp.PTPException;
 import ste.ptp.Response;
+import ste.ptp.eos.EosEvent;
 import ste.ptp.eos.EosInitiator;
 
 /**
@@ -39,7 +41,10 @@ import ste.ptp.eos.EosInitiator;
 public class CameraControllerTest
         extends TestCase {
 
+    public final String IMAGE_DIR = "/tmp/cameracontrol";
+    
     private CameraController CONTROLLER = null;
+    private Configuration    CONFIG     = null;
 
     /**
      * Create the test case
@@ -60,11 +65,36 @@ public class CameraControllerTest
     @Override
     protected void setUp() throws Exception {
         super.setUp();
+
+        EosInitiator.shootError = false;
+        EosInitiator.invoked.clear();
+        EosInitiator.events.clear();
+        File outDir = new File(IMAGE_DIR);
+        if (!outDir.exists()) {
+            outDir.mkdirs();
+        } else {
+            String[] files = outDir.list();
+            for (int i=0; (files != null) && (i<files.length); ++i) {
+                (new File(outDir, files[i])).delete();
+            }
+        }
+
+        CONFIG = new Configuration();
+        CONFIG.setImageDir(IMAGE_DIR);
     }
 
     @Override
     protected void tearDown() throws Exception {
         super.tearDown();
+
+        File outDir = new File(IMAGE_DIR);
+        if (outDir.exists()) {
+            String[] files = outDir.list();
+            for (int i=0; (files != null) && (i<files.length); ++i) {
+                (new File(outDir, files[i])).delete();
+            }
+            outDir.delete();
+        }
     }
 
     private void fireCameraConnectionEvent() throws Exception {
@@ -92,6 +122,25 @@ public class CameraControllerTest
         // We should have no errors
         //
     }
+
+    public void testInitializeWithConfiguration() {
+        CONTROLLER = new CameraController(CONFIG);
+
+        Configuration c = CONTROLLER.getConfiguration();
+        assertEquals(IMAGE_DIR, c.getImageDir());
+    }
+
+    public void testInitializeWithWrongConfiguration() {
+        try {
+            CONTROLLER = new CameraController(null);
+            fail("the configuration object cannot be null");
+        } catch (IllegalArgumentException e) {
+            //
+            // OK!
+            //
+        }
+    }
+        
 
     public void testFireConnectionEvent() throws Exception {
         CONTROLLER = new CameraController();
@@ -182,7 +231,7 @@ public class CameraControllerTest
         assertTrue(EosInitiator.invoked.contains("initiateCapture"));
     }
 
-    public void testShootKO() throws Exception  {
+    public void testShootKO() throws Exception {
         EosInitiator.shootError = true;
 
         try {
@@ -195,5 +244,37 @@ public class CameraControllerTest
         }
     }
 
+    public void testDownloadObject() throws Exception {
+        CONTROLLER = new CameraController(CONFIG);
+        CONTROLLER.startCamera();
 
+        CONTROLLER.downloadObject(1, 256, "capture.jpg");
+
+        assertTrue(EosInitiator.invoked.contains("getPartialObject"));
+        assertTrue(EosInitiator.invoked.contains("transferComplete"));
+
+        assertTrue(new File(IMAGE_DIR, "capture.jpg").exists());
+    }
+
+    public void testShootAndCapture() throws Exception {
+        EosEvent file1 = new EosEvent();
+        EosEvent file2 = new EosEvent();
+
+        file1.setCode(EosEvent.EosEventObjectAddedEx);
+        file2.setCode(EosEvent.EosEventObjectAddedEx);
+        file1.setParam(1, 1); file2.setParam(1, 1);
+        file1.setParam(5, 256); file2.setParam(5, 256);
+        file1.setParam(6, "capture.jpg"); file2.setParam(6, "capture.cr2");
+        
+        EosInitiator.events.add(file1); EosInitiator.events.add(file2);
+
+        CONTROLLER = new CameraController(CONFIG);
+        CONTROLLER.startCamera();
+        CONTROLLER.shootAndCapture();
+
+        assertTrue(EosInitiator.invoked.contains("initiateCapture"));
+        
+        assertTrue(new File(IMAGE_DIR, "capture.jpg").exists());
+        assertTrue(new File(IMAGE_DIR, "capture.cr2").exists());
+    }
 }

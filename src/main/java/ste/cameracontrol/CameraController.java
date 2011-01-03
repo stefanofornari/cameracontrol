@@ -29,7 +29,9 @@ import java.util.List;
 import ch.ntb.usb.Device;
 import ch.ntb.usb.USB;
 import ch.ntb.usb.UsbDevice;
+import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 
 import ste.ptp.DeviceInfo;
 import ste.ptp.FileData;
@@ -57,6 +59,8 @@ public class CameraController implements Runnable {
     private boolean cameraMonitorActive;
     private Device camera;
     private boolean cameraConnected;
+
+    private Configuration configuration;
     //
     // I need to find a better name for this...
     //
@@ -66,12 +70,37 @@ public class CameraController implements Runnable {
      * Creates a new CameraController
      */
     public CameraController() {
+        this(new Configuration());
+    }
+
+    /**
+     * Creates a new CameraController with the given configuration
+     *
+     * @param configuration the configuration object that contains the configuration
+     * 
+     * @throws  IllegalArgumentException if configuration is null
+     */
+    public CameraController(Configuration configuration) {
+        if (configuration == null) {
+            throw new IllegalArgumentException("configuration cannot be null");
+        }
         connection = new CameraConnection();
         listeners = new ArrayList<CameraListener>();
         cameraMonitorActive = false;
         cameraConnected = false;
         camera = null;
+        this.configuration = configuration;
         checkCamera();
+    }
+
+
+    /**
+     * Returns the configuration object used by this CameraController
+     *
+     * @return the configuration object used by this CameraController
+     */
+    public Configuration getConfiguration() {
+        return configuration;
     }
 
     /**
@@ -167,6 +196,21 @@ public class CameraController implements Runnable {
         sanityCheck();
         device.initiateCapture (0, 0);
 
+        device.checkEvents();
+    }
+
+    /**
+     * Command the camera to take a picture and download the foto(s) from the
+     * camera. For now fotos are are saved with the name given by the camera
+     * under a configured directory. It may change in the future.
+     * If an error occurs, a PTPException is thrown.
+     *
+     * @throws PTPException in case of errors
+     */
+    public void shootAndCapture() throws PTPException {
+        sanityCheck();
+        device.initiateCapture (0, 0);
+
         ArrayList<EosEvent> objects = new ArrayList<EosEvent>();
         for (int i=0; i<5; ++i) {
             List<EosEvent> events = device.checkEvents();
@@ -195,11 +239,11 @@ public class CameraController implements Runnable {
     //
     public void downloadObject(int id, int size, String fileName)
     throws PTPException {
-
-        System.out.println("Downloading " + fileName);
+        sanityCheck();
+        
         FileOutputStream file = null;
         try {
-            file = new FileOutputStream(fileName);
+            file = new FileOutputStream(new File(configuration.getImageDir(), fileName));
 
             FileData data = new FileData(file, device);
             device.getPartialObject(id, 0, size, data);
