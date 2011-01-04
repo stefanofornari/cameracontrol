@@ -42,11 +42,11 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.SwingWorker;
 import javax.swing.UIManager;
+import org.apache.commons.lang.StringUtils;
 import org.jdesktop.swingx.JXCollapsiblePane;
 import org.jdesktop.swingx.JXDialog;
 
 import ste.cameracontrol.CameraController;
-import ste.ptp.PTPException;
 
 /**
  *
@@ -94,9 +94,8 @@ public class CameraControlWindow extends javax.swing.JFrame {
         setTitle("Camera connection status");
         setBackground(javax.swing.UIManager.getDefaults().getColor("window"));
         setIconImage(getImage(ICON_CAMERACONTROL));
-        setMinimumSize(new java.awt.Dimension(400, 300));
+        setMinimumSize(new java.awt.Dimension(500, 400));
         setName("connectionframe"); // NOI18N
-        setResizable(false);
 
         statusPanel.setLayout(new java.awt.BorderLayout());
 
@@ -150,10 +149,24 @@ public class CameraControlWindow extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void shootMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_shootMenuItemActionPerformed
+        setStatus("Taking picture");
         try {
-            controller.shootAndDownload();
-            setStatus("Pictures saved in " + controller.getConfiguration().getImageDir());
-        } catch (PTPException e) {
+            new SwingWorker<Void, Object>() {
+                @Override
+                public Void doInBackground() throws Exception {
+                    controller.shootAndDownload();
+                    setStatus("Pictures saved in " + controller.getConfiguration().getImageDir());
+                    Thread.sleep(3000);
+                    
+                    return null;
+                }
+
+                @Override
+                protected void done() {
+                    setStatus("");
+                }
+            }.execute();
+        } catch (Exception e) {
             error("Error capturing the picture: " + e.getMessage(), e);
         }
     }//GEN-LAST:event_shootMenuItemActionPerformed
@@ -200,41 +213,17 @@ public class CameraControlWindow extends javax.swing.JFrame {
     }
 
     /**
-     * Displays a message in the status bar for the given amount of time; then
-     * he status is cleared.
-     *
-     * @param status the status message
-     * @param timeout the milliseconds the message shall be displayed (>0)
-     * 
-     */
-    public void setStatus(final String status, final int timeout) {
-        if (timeout < 0) {
-            throw new IllegalArgumentException("timeout must be > 0)");
-        }
-        
-        new SwingWorker<Void, Object>() {
-            @Override
-            public Void doInBackground() throws InterruptedException {
-                setStatus(status);
-                Thread.sleep(timeout);
-                return null;
-            }
-
-            @Override
-            protected void done() {
-                setStatus("");
-            }
-        };
-    }
-
-    /**
      * Displays a message in the status bar.
      *
      * @param status the status message
      *
      */
     public void setStatus(final String status) {
-        statusLabel.setText((status == null) ? "" : (" " + status));
+        if (status == null) {
+            statusLabel.setText("");
+        }
+        
+        statusLabel.setText(StringUtils.abbreviateMiddle(status, "...", 50));
     }
     
     /**
