@@ -37,7 +37,7 @@ public class CameraControlWindow {
 
     public void setVisible(boolean visible) {}
 
-    public void setStatus(String status) {
+    public void setConnectionStatus(String status) {
         this.status = status;
     }
 

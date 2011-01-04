@@ -41,6 +41,11 @@
             <artifactId>swingx</artifactId>
             <version>1.6.1</version>
         </dependency>
+        <dependency>
+            <groupId>it.tidalwave.imageio</groupId>
+            <artifactId>jrawio</artifactId>
+            <version>1.5.0</version>
+        </dependency>
     </dependencies>
     <build>
         <resources>

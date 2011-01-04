@@ -40,6 +40,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import javax.swing.SwingWorker;
 import javax.swing.UIManager;
 import org.jdesktop.swingx.JXCollapsiblePane;
 import org.jdesktop.swingx.JXDialog;
@@ -66,6 +67,7 @@ public class CameraControlWindow extends javax.swing.JFrame {
     public CameraControlWindow() {
         initComponents();
         setLocationRelativeTo(null);
+        setStatus("");
     }
 
     /** This method is called from within the constructor to
@@ -77,6 +79,8 @@ public class CameraControlWindow extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        statusPanel = new javax.swing.JPanel();
+        connectionLabel = new javax.swing.JLabel();
         statusLabel = new javax.swing.JLabel();
         menuBar = new javax.swing.JMenuBar();
         menuFile = new javax.swing.JMenu();
@@ -94,11 +98,19 @@ public class CameraControlWindow extends javax.swing.JFrame {
         setName("connectionframe"); // NOI18N
         setResizable(false);
 
-        statusLabel.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/camera-connect-24x24.png"))); // NOI18N
-        statusLabel.setText("Status bar");
+        statusPanel.setLayout(new java.awt.BorderLayout());
+
+        connectionLabel.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/camera-connect-24x24.png"))); // NOI18N
+        connectionLabel.setText("connection status");
+        connectionLabel.setBorder(javax.swing.BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.RAISED));
+        connectionLabel.setPreferredSize(null);
+        statusPanel.add(connectionLabel, java.awt.BorderLayout.LINE_START);
+
+        statusLabel.setText("status");
         statusLabel.setBorder(javax.swing.BorderFactory.createEtchedBorder(javax.swing.border.EtchedBorder.RAISED));
-        statusLabel.setPreferredSize(new java.awt.Dimension(300, 32));
-        getContentPane().add(statusLabel, java.awt.BorderLayout.PAGE_END);
+        statusPanel.add(statusLabel, java.awt.BorderLayout.CENTER);
+
+        getContentPane().add(statusPanel, java.awt.BorderLayout.PAGE_END);
 
         menuFile.setText("File");
         menuBar.add(menuFile);
@@ -140,6 +152,7 @@ public class CameraControlWindow extends javax.swing.JFrame {
     private void shootMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_shootMenuItemActionPerformed
         try {
             controller.shootAndDownload();
+            setStatus("Pictures saved in " + controller.getConfiguration().getImageDir());
         } catch (PTPException e) {
             error("Error capturing the picture: " + e.getMessage(), e);
         }
@@ -162,6 +175,7 @@ public class CameraControlWindow extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JMenuItem aboutMenuItem;
+    private javax.swing.JLabel connectionLabel;
     private javax.swing.JMenuBar menuBar;
     private javax.swing.JMenu menuCamera;
     private javax.swing.JMenu menuEdit;
@@ -169,21 +183,60 @@ public class CameraControlWindow extends javax.swing.JFrame {
     private javax.swing.JMenu menuHelp;
     private javax.swing.JMenuItem shootMenuItem;
     private javax.swing.JLabel statusLabel;
+    private javax.swing.JPanel statusPanel;
     // End of variables declaration//GEN-END:variables
 
 
     // ---------------------------------------------------------- Public methods
 
-    public void setStatus(String status) {
+    public void setConnectionStatus(String status) {
         if (status != null) {
-            statusLabel.setIcon(getIcon(ICON_CAMERA_CONNECT));
-            statusLabel.setText(status);
+            connectionLabel.setIcon(getIcon(ICON_CAMERA_CONNECT));
+            connectionLabel.setText(status);
         } else {
-            statusLabel.setIcon(getIcon(ICON_CAMERA_DISCONNECT));
-            statusLabel.setText("");
+            connectionLabel.setIcon(getIcon(ICON_CAMERA_DISCONNECT));
+            connectionLabel.setText("Not connected");
         }
     }
 
+    /**
+     * Displays a message in the status bar for the given amount of time; then
+     * he status is cleared.
+     *
+     * @param status the status message
+     * @param timeout the milliseconds the message shall be displayed (>0)
+     * 
+     */
+    public void setStatus(final String status, final int timeout) {
+        if (timeout < 0) {
+            throw new IllegalArgumentException("timeout must be > 0)");
+        }
+        
+        new SwingWorker<Void, Object>() {
+            @Override
+            public Void doInBackground() throws InterruptedException {
+                setStatus(status);
+                Thread.sleep(timeout);
+                return null;
+            }
+
+            @Override
+            protected void done() {
+                setStatus("");
+            }
+        };
+    }
+
+    /**
+     * Displays a message in the status bar.
+     *
+     * @param status the status message
+     *
+     */
+    public void setStatus(final String status) {
+        statusLabel.setText((status == null) ? "" : (" " + status));
+    }
+    
     /**
      * @return the controller
      */

@@ -84,17 +84,17 @@ public class CameraControlMain implements CameraListener {
             } catch (PTPBusyException e) {
                 continue;
             } catch (Exception e) {
-                window.setStatus(null);
+                window.setConnectionStatus(null);
                 window.error(null, e);
                 return;
             }
         }
-        window.setStatus(device.getDisplayName());
+        window.setConnectionStatus(device.getDisplayName());
     }
 
     @Override
     public void cameraDisconnected(Device device) {
-        window.setStatus(null);
+        window.setConnectionStatus(null);
     }
 
     public static void main(String[] args) throws Exception {
