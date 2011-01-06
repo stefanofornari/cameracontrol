@@ -1,0 +1,23 @@
+                       cameracontrol v${project.version}
+                Copyright 2011, Stefano Fornari
+
+cameracontrol is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+cameracontrol takes advantage of the work of many people that
+created or contributed open source effort it uses as a basis.
+Below you will find the list of people and projects that deserves
+to be credited for the development of cameracontrol.
+
+                        SPECIAL THANKS
+To Marcus Meissner of the gphoto project for the help and support
+given on gphoto users list.
+
+                        JavaUSB 2
+Camera PTP uses a derivative work of the Java USB programming
+library javausb (http://libusbjava.sourceforge.net/wp) named
+JavaUSB 2. This is just a modernization of the original library
+with few additions needed to better support cameracontrol. You
+can find more information here http://code.google.com/p/usbjava.
