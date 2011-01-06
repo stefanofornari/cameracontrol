@@ -57,7 +57,20 @@
                 </excludes>
                 <filtering>true</filtering>
             </resource>
+            <resource>
+                <directory>${project.basedir}</directory>
+                <includes>
+                    <include>agpl.txt</include>
+                </includes>
+                <filtering>false</filtering>
+            </resource>
         </resources>
+
+        <testResources>
+            <testResource>
+                <directory>src/test/resources</directory>
+            </testResource>
+        </testResources>
 
         <plugins>
             <plugin>

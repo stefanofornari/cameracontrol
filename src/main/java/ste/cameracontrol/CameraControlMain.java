@@ -25,6 +25,7 @@ package ste.cameracontrol;
 import ch.ntb.usb.Device;
 import ch.ntb.usb.DeviceDatabase;
 import java.io.File;
+import ste.cameracontrol.ui.AboutDialog;
 import ste.cameracontrol.ui.CameraControlWindow;
 import ste.ptp.PTPBusyException;
 
@@ -98,6 +99,13 @@ public class CameraControlMain implements CameraListener {
     }
 
     public static void main(String[] args) throws Exception {
+        for (String s: args) {
+            if (s.equals("--about")) {
+                new AboutDialog(null, true).setVisible(true);
+                return;
+            }
+        }
+        
         new CameraControlMain();
     }
 }
