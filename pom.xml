@@ -162,8 +162,8 @@
     </reporting>
 
     <scm>
-        <connection>scm:git:git://github.com/stefanofornari/cameraptp</connection>
-        <url>http://github.com/stefanofornari/cameraptp/tree/master</url>
+        <connection>scm:git:git://github.com/stefanofornari/cameracontrol</connection>
+        <url>http://github.com/stefanofornari/cameracontrol/tree/master</url>
     </scm>
 
     <distributionManagement>
