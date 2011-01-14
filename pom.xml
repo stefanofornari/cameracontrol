@@ -4,7 +4,7 @@
     <groupId>cameracontrol</groupId>
     <artifactId>cameracontrol</artifactId>
     <packaging>jar</packaging>
-    <version>1.0</version>
+    <version>1.1-SNAPSHOT</version>
     <name>cameracontrol</name>
     <url>http://maven.apache.org</url>
     <dependencies>
@@ -17,18 +17,18 @@
         <dependency>
             <groupId>usbjava2</groupId>
             <artifactId>usbjava</artifactId>
-            <version>1.1</version>
+            <version>1.2-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>usbjava2</groupId>
             <artifactId>libusbjava</artifactId>
-            <version>1.1</version>
+            <version>1.2-SNAPSHOT</version>
             <type>so</type>
         </dependency>
         <dependency>
             <groupId>com.ste</groupId>
             <artifactId>cameraptp</artifactId>
-            <version>1.0</version>
+            <version>1.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>commons-cli</groupId>
