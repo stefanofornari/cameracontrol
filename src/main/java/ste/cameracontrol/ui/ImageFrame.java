@@ -22,6 +22,7 @@
 package ste.cameracontrol.ui;
 
 import java.awt.Image;
+import java.awt.event.AdjustmentEvent;
 
 /**
  *
@@ -33,6 +34,7 @@ public class ImageFrame extends BaseFrame {
         "10%", "25%", "50%", "75%", "100%",
         "150%", "200%", "300%", "500%", "1000%"
     };
+    public final int MAX_ZOOM = 1000;
 
     private ImagePanel imagePanel;
 
@@ -41,6 +43,7 @@ public class ImageFrame extends BaseFrame {
         initCustomComponents();
         imagePanel.setImage(image);
         initComponents();
+        setZoomValue(100);
     }
 
     /** This method is called from within the constructor to
@@ -79,8 +82,8 @@ public class ImageFrame extends BaseFrame {
         bottomPanel.add(zoomScrollbar);
 
         zoomValueBox.setEditable(true);
-        zoomValueBox.setMinimumSize(new java.awt.Dimension(70, 19));
-        zoomValueBox.setPreferredSize(new java.awt.Dimension(70, 19));
+        zoomValueBox.setMinimumSize(new java.awt.Dimension(80, 19));
+        zoomValueBox.setPreferredSize(new java.awt.Dimension(75, 19));
         zoomValueBox.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 zoomValueBoxActionPerformed(evt);
@@ -93,13 +96,45 @@ public class ImageFrame extends BaseFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
+    /**
+     * Set the zoom value for the picture. The zoom value is an int representing
+     * the zoom percentage (e.g. 10%, 100%).
+     *
+     * @param zoom the zoom percentage
+     */
+    private void setZoomValue(int zoom) {
+        zoomValueBox.setSelectedItem(zoom + "%");
+        imagePanel.setScale(zoom / 100.0);
+        imagePanel.revalidate();
+    }
+
     private void zoomValueBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_zoomValueBoxActionPerformed
-        // TODO add your handling code here:
+        String zoomValue = (String)zoomValueBox.getSelectedItem();
+        int zoom = -1;
+        
+        if (zoomValue == null) {
+            return;
+        }
+
+        if (zoomValue.endsWith("%")) {
+            zoomValue = zoomValue.substring(0, zoomValue.length()-1);
+        }
+
+        try {
+            zoom = Integer.parseInt(zoomValue);
+            if ((zoom < 1) || (zoom > MAX_ZOOM)) {
+                throw new IllegalArgumentException("zoom out of range [1," + MAX_ZOOM + "]");
+            }
+            setZoomValue(zoom);
+        } catch (Exception e) {
+            //
+            // do nothing
+            //
+        }
 }//GEN-LAST:event_zoomValueBoxActionPerformed
 
     private void zoomScrollbarAdjustmentValueChanged(java.awt.event.AdjustmentEvent evt) {//GEN-FIRST:event_zoomScrollbarAdjustmentValueChanged
-        zoomValueBox.setSelectedItem(evt.getValue() + "%");
-        imagePanel.setScale(evt.getValue()/100.0);
+        setZoomValue(evt.getValue());
     }//GEN-LAST:event_zoomScrollbarAdjustmentValueChanged
 
     private void initCustomComponents() {
