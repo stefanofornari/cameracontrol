@@ -22,29 +22,11 @@
 
 package ste.cameracontrol.ui;
 
-import java.awt.BorderLayout;
-import java.awt.Dimension;
 import java.awt.Image;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-import java.io.PrintWriter;
-import java.io.StringWriter;
+import java.io.IOException;
 import javax.imageio.ImageIO;
-import javax.swing.Action;
-import javax.swing.Box;
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JDialog;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
 import javax.swing.SwingWorker;
-import javax.swing.UIManager;
 import org.apache.commons.lang.StringUtils;
-import org.jdesktop.swingx.JXCollapsiblePane;
-import org.jdesktop.swingx.JXDialog;
 
 import ste.cameracontrol.CameraController;
 
@@ -52,12 +34,10 @@ import ste.cameracontrol.CameraController;
  *
  * @author ste
  */
-public class CameraControlWindow extends javax.swing.JFrame {
+public class CameraControlWindow extends BaseFrame {
 
     public static final String ICON_CAMERA_CONNECT    = "images/camera-connect-24x24.png";
     public static final String ICON_CAMERA_DISCONNECT = "images/camera-disconnect-24x24.png";
-    public static final String ICON_CAMERACONTROL     = "images/camera-control.png";
-    public static final String ICON_ERROR             = "images/error-48x48.png";
     /**
      * The camera controller
      */
@@ -89,6 +69,7 @@ public class CameraControlWindow extends javax.swing.JFrame {
         shootMenuItem = new javax.swing.JMenuItem();
         menuHelp = new javax.swing.JMenu();
         aboutMenuItem = new javax.swing.JMenuItem();
+        jMenuItem1 = new javax.swing.JMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Camera connection status");
@@ -141,6 +122,14 @@ public class CameraControlWindow extends javax.swing.JFrame {
         });
         menuHelp.add(aboutMenuItem);
 
+        jMenuItem1.setText("jMenuItem1");
+        jMenuItem1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem1ActionPerformed(evt);
+            }
+        });
+        menuHelp.add(jMenuItem1);
+
         menuBar.add(menuHelp);
 
         setJMenuBar(menuBar);
@@ -175,6 +164,15 @@ public class CameraControlWindow extends javax.swing.JFrame {
         new AboutDialog(this, true).setVisible(true);
     }//GEN-LAST:event_aboutMenuItemActionPerformed
 
+    private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem1ActionPerformed
+        try {
+            Image img = ImageIO.read(ClassLoader.getSystemResourceAsStream("images/about.png"));
+            new ImageFrame(img).setVisible(true);
+        } catch (IOException e) {
+            error(e.getMessage(), e);;
+        }
+    }//GEN-LAST:event_jMenuItem1ActionPerformed
+
     /**
     * @param args the command line arguments
     */
@@ -189,6 +187,7 @@ public class CameraControlWindow extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JMenuItem aboutMenuItem;
     private javax.swing.JLabel connectionLabel;
+    private javax.swing.JMenuItem jMenuItem1;
     private javax.swing.JMenuBar menuBar;
     private javax.swing.JMenu menuCamera;
     private javax.swing.JMenu menuEdit;
@@ -238,116 +237,5 @@ public class CameraControlWindow extends javax.swing.JFrame {
      */
     public void setController(CameraController controller) {
         this.controller = controller;
-    }
-
-    // --------------------------------------------------------- Private methods
-
-    public void error(final String msg, final Throwable t) {
-        StringWriter sw = new StringWriter();
-        PrintWriter pw = new PrintWriter(sw);
-        t.printStackTrace(pw);
-
-        JLabel icon = new JLabel();
-        Icon img = UIManager.getIcon("OptionPane.errorIcon");
-        if (img == null) {
-            img = getIcon(ICON_ERROR);
-        }
-        icon.setIcon(img);
-
-        JLabel message = new JLabel();
-        if (msg != null) {
-            message.setText("<html>" + msg + "</html>");
-        } else {
-            message.setText("<html>" + t.getMessage() + "</html>");
-        }
-        message.setPreferredSize(new Dimension(200, 50));
-
-        JTextArea text = new JTextArea(sw.toString(), 60, 80);
-        text.setCaretPosition(0);
-        text.setEditable(false);
-        JScrollPane stext = new JScrollPane(text);
-        stext.setPreferredSize(new Dimension(500, 200));
-
-        Box content = Box.createHorizontalBox();
-        JXDialog dialog = new JXDialog(content);
-        dialog.setTitle("Error");
-        dialog.setIconImage(getIconImage());
-        //dialog.setMaximumSize(new Dimension(400, 200));
-
-        JXCollapsiblePane cp = new JXCollapsiblePane(new BorderLayout());
-        cp.setAnimated(false);
-        cp.addPropertyChangeListener(new CollapseListener(dialog));
-        cp.add(stext, BorderLayout.CENTER);
-
-        // get the built-in toggle action
-        Action toggleAction = cp.getActionMap().
-            get(JXCollapsiblePane.TOGGLE_ACTION);
-
-        // use the collapse/expand icons from the JTree UI
-        toggleAction.putValue(
-            JXCollapsiblePane.COLLAPSE_ICON,
-            UIManager.getIcon("Tree.expandedIcon")
-        );
-        toggleAction.putValue(
-           JXCollapsiblePane.EXPAND_ICON,
-           UIManager.getIcon("Tree.collapsedIcon")
-        );
-
-        cp.setCollapsed(true);
-
-        JButton toggle = new JButton (toggleAction);
-        toggle.setText("");
-        toggle.setSize(new Dimension(40,40));
-
-        Box messagePanel = Box.createHorizontalBox();
-        messagePanel.add(message);
-        messagePanel.add(toggle);
-
-        JPanel exceptionPanel = new JPanel(new BorderLayout());
-        exceptionPanel.add(messagePanel, BorderLayout.PAGE_START);
-        exceptionPanel.add(cp, BorderLayout.PAGE_END);
-
-        icon.setAlignmentY(TOP_ALIGNMENT);
-        exceptionPanel.setAlignmentY(TOP_ALIGNMENT);
-        content.add(icon);
-        content.add(Box.createRigidArea(new Dimension(5, 5)));
-        content.add(exceptionPanel);
-
-        // Show the MODAL dialog
-
-        dialog.setModal(true);
-        dialog.pack();
-        dialog.setLocationRelativeTo(this);
-        dialog.setVisible(true);
-    }
-
-    private class CollapseListener implements PropertyChangeListener {
-        public static final String PROPERTY_COLLAPTION_STATE = "collapsed";
-        private JDialog dialog;
-
-        public CollapseListener(JDialog dialog) {
-            this.dialog = dialog;
-        }
-
-        public void propertyChange(PropertyChangeEvent e) {
-            if (PROPERTY_COLLAPTION_STATE.equals(e.getPropertyName())) {
-                dialog.pack();
-            }
-        }
-
-    }
-
-    private ImageIcon getIcon(String name) {
-        return new ImageIcon(ClassLoader.getSystemResource(name));
-    }
-
-    private Image getImage(String name) {
-        try {
-            return ImageIO.read(ClassLoader.getSystemResource(name));
-        } catch (Exception e) {
-            error("", e);
-        }
-
-        return null;
     }
 }
