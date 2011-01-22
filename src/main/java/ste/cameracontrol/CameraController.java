@@ -31,7 +31,6 @@ import ch.ntb.usb.USB;
 import ch.ntb.usb.UsbDevice;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.IOException;
 
 import ste.ptp.DeviceInfo;
 import ste.ptp.FileData;
