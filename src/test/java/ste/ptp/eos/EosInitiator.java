@@ -66,7 +66,14 @@ public class EosInitiator extends NameFactory {
     }
 
     public List<EosEvent> checkEvents() {
-        return events;
+        //
+        // we need to simulate that the events are consumed
+        //
+        List<EosEvent> ret = new ArrayList<EosEvent>(events.size());
+        ret.addAll(events);
+        events.clear();
+
+        return ret;
     }
 
     public String getResponseString(int i) {

@@ -248,33 +248,34 @@ public class CameraControllerTest
         CONTROLLER = new CameraController(CONFIG);
         CONTROLLER.startCamera();
 
-        CONTROLLER.downloadObject(1, 256, "capture.jpg");
+        Photo photo = CONTROLLER.downloadPhoto(1, 256, "capture.jpg");
 
         assertTrue(EosInitiator.invoked.contains("getPartialObject"));
         assertTrue(EosInitiator.invoked.contains("transferComplete"));
 
-        assertTrue(new File(IMAGE_DIR, "capture.jpg").exists());
+        assertNotNull(photo);
+        assertEquals("capture.jpg", photo.getName());
     }
 
     public void testShootAndCapture() throws Exception {
-        EosEvent file1 = new EosEvent();
-        EosEvent file2 = new EosEvent();
+        EosEvent photo1 = new EosEvent();
+        EosEvent photo2 = new EosEvent();
 
-        file1.setCode(EosEvent.EosEventObjectAddedEx);
-        file2.setCode(EosEvent.EosEventObjectAddedEx);
-        file1.setParam(1, 1); file2.setParam(1, 1);
-        file1.setParam(5, 256); file2.setParam(5, 256);
-        file1.setParam(6, "capture.jpg"); file2.setParam(6, "capture.cr2");
+        photo1.setCode(EosEvent.EosEventObjectAddedEx);
+        photo2.setCode(EosEvent.EosEventObjectAddedEx);
+        photo1.setParam(1, 1); photo2.setParam(1, 1);
+        photo1.setParam(5, 256); photo2.setParam(5, 256);
+        photo1.setParam(6, "capture.jpg"); photo2.setParam(6, "capture.cr2");
         
-        EosInitiator.events.add(file1); EosInitiator.events.add(file2);
+        EosInitiator.events.add(photo1); EosInitiator.events.add(photo2);
 
         CONTROLLER = new CameraController(CONFIG);
         CONTROLLER.startCamera();
-        CONTROLLER.shootAndDownload();
+        Photo[] photos = CONTROLLER.shootAndDownload();
 
         assertTrue(EosInitiator.invoked.contains("initiateCapture"));
-        
-        assertTrue(new File(IMAGE_DIR, "capture.jpg").exists());
-        assertTrue(new File(IMAGE_DIR, "capture.cr2").exists());
+        assertEquals(2, photos.length);
+        assertEquals("capture.jpg", photos[0].getName());
+        assertEquals("capture.cr2", photos[1].getName());
     }
 }

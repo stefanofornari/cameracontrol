@@ -22,13 +22,14 @@
 
 package ste.cameracontrol.ui;
 
-import java.awt.Image;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
 import javax.imageio.ImageIO;
 import javax.swing.SwingWorker;
 import org.apache.commons.lang.StringUtils;
 
 import ste.cameracontrol.CameraController;
+import ste.cameracontrol.Photo;
 
 /**
  *
@@ -143,10 +144,18 @@ public class CameraControlWindow extends BaseFrame {
             new SwingWorker<Void, Object>() {
                 @Override
                 public Void doInBackground() throws Exception {
-                    controller.shootAndDownload();
-                    setStatus("Pictures saved in " + controller.getConfiguration().getImageDir());
-                    Thread.sleep(3000);
+                    setStatus("Wait...");
+                    Photo photos[] = controller.shootAndDownload();
                     
+                    for (Photo photo: photos) {
+                        //
+                        // TODO: remove this limitation; the current version of
+                        // jrawio does not work
+                        //
+                        if (!photo.getName().toLowerCase().endsWith("cr2")) {
+                            new ImageFrame(photo).setVisible(true);
+                        }
+                    }
                     return null;
                 }
 
@@ -166,7 +175,10 @@ public class CameraControlWindow extends BaseFrame {
 
     private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem1ActionPerformed
         try {
-            Image img = ImageIO.read(ClassLoader.getSystemResourceAsStream("images/about.png"));
+            BufferedImage img = ImageIO.read(ClassLoader.getSystemResourceAsStream("images/about.png"));
+            for (String s: img.getPropertyNames()) {
+                System.out.println(s);
+            }
             new ImageFrame(img).setVisible(true);
         } catch (IOException e) {
             error(e.getMessage(), e);;

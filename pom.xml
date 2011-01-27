@@ -50,6 +50,18 @@
             <artifactId>beansbinding</artifactId>
             <version>1.2.1</version>
         </dependency>
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>1.4</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.rawdarkroom</groupId>
+            <artifactId>jrawio</artifactId>
+            <version>1.6.1</version>
+            <scope>runtime</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -169,14 +181,7 @@
         <connection>scm:git:git://github.com/stefanofornari/cameracontrol</connection>
         <url>http://github.com/stefanofornari/cameracontrol/tree/master</url>
     </scm>
-    <repositories>
-        <repository>
-            <url>http://download.java.net/maven/2/</url>
-            <id>beans-binding</id>
-            <layout>default</layout>
-            <name>Repository for library Library[beans-binding]</name>
-        </repository>
-    </repositories>
+
     <distributionManagement>
         <repository>
             <id>filesystem</id>

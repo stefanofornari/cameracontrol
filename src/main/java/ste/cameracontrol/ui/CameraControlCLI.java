@@ -23,6 +23,8 @@ package ste.cameracontrol.ui;
 
 import ch.ntb.usb.USBBusyException;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.PrintStream;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -31,6 +33,7 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.PosixParser;
 import ste.cameracontrol.CameraController;
 import ste.cameracontrol.Configuration;
+import ste.cameracontrol.Photo;
 import ste.ptp.PTPException;
 
 /**
@@ -384,7 +387,21 @@ public class CameraControlCLI {
 
 
     private static void shoot()
-    throws PTPException {
-        controller.shootAndDownload();
+    throws IOException, PTPException {
+        Photo[] photos = controller.shootAndDownload();
+
+        for (Photo photo: photos) {
+            File f = new File(directory, photo.getName());
+            FileOutputStream fos = null;
+            try {
+                 fos = new FileOutputStream(f);
+                 fos.write(photo.getRawData());
+            } finally  {
+                if (fos != null) {
+                    try {fos.close();} catch (IOException e) {}
+                    fos  = null;
+                }
+            }
+        }
     }
 }

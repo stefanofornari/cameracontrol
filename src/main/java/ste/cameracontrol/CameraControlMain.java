@@ -98,6 +98,8 @@ public class CameraControlMain implements CameraListener {
         window.setConnectionStatus(null);
     }
 
+    // -------------------------------------------------------------------- main
+    
     public static void main(String[] args) throws Exception {
         for (String s: args) {
             if (s.equals("--about")) {
@@ -108,4 +110,6 @@ public class CameraControlMain implements CameraListener {
         
         new CameraControlMain();
     }
+
+
 }

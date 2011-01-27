@@ -22,7 +22,7 @@
 package ste.cameracontrol.ui;
 
 import java.awt.Image;
-import java.awt.event.AdjustmentEvent;
+import ste.cameracontrol.Photo;
 
 /**
  *
@@ -38,11 +38,20 @@ public class ImageFrame extends BaseFrame {
 
     private ImagePanel imagePanel;
 
-    /** Creates new form ImageFrame */
+    /** Creates new ImageFrame */
     public ImageFrame(Image image) {
         initCustomComponents();
         imagePanel.setImage(image);
         initComponents();
+        setZoomValue(100);
+    }
+
+    /** Creates new ImageFrame */
+    public ImageFrame(Photo photo) {
+        initCustomComponents();
+        imagePanel.setImage(photo.getImage());
+        initComponents();
+        setTitle(photo.getName());
         setZoomValue(100);
     }
 
@@ -61,7 +70,6 @@ public class ImageFrame extends BaseFrame {
         zoomValueBox = new javax.swing.JComboBox(ZOOM_VALUES);
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
-        setTitle("cameracontrol - image viewer");
         setIconImage(getImage(ICON_CAMERACONTROL));
         getContentPane().add(scrollPane, java.awt.BorderLayout.CENTER);
 
