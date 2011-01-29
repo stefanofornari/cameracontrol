@@ -22,6 +22,8 @@
 package ste.cameracontrol.ui;
 
 import java.awt.Image;
+import java.awt.event.ComponentAdapter;
+
 import ste.cameracontrol.Photo;
 
 /**
@@ -31,28 +33,23 @@ import ste.cameracontrol.Photo;
 public class ImageFrame extends BaseFrame {
 
     private final String[] ZOOM_VALUES = {
-        "10%", "25%", "50%", "75%", "100%",
+        "Fit", "10%", "25%", "50%", "75%", "100%",
         "150%", "200%", "300%", "500%", "1000%"
     };
-    public final int MAX_ZOOM = 1000;
+    public static final int MAX_ZOOM = 1000;
+    public static final String ZOOM_FIT_VALUE = "Fit";
 
     private ImagePanel imagePanel;
 
     /** Creates new ImageFrame */
     public ImageFrame(Image image) {
-        initCustomComponents();
-        imagePanel.setImage(image);
-        initComponents();
-        setZoomValue(100);
+        initCustomComponents(image);
     }
 
     /** Creates new ImageFrame */
     public ImageFrame(Photo photo) {
-        initCustomComponents();
-        imagePanel.setImage(photo.getImage());
-        initComponents();
+        initCustomComponents(photo.getImage());
         setTitle(photo.getName());
-        setZoomValue(100);
     }
 
     /** This method is called from within the constructor to
@@ -66,14 +63,26 @@ public class ImageFrame extends BaseFrame {
 
         scrollPane = new javax.swing.JScrollPane(imagePanel);
         bottomPanel = new javax.swing.JPanel();
+        zoomFitButton = new javax.swing.JButton();
         zoomScrollbar = new javax.swing.JScrollBar();
         zoomValueBox = new javax.swing.JComboBox(ZOOM_VALUES);
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setIconImage(getImage(ICON_CAMERACONTROL));
+
+        scrollPane.setName("scrollpane"); // NOI18N
         getContentPane().add(scrollPane, java.awt.BorderLayout.CENTER);
 
         bottomPanel.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT));
+
+        zoomFitButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/zoom-fit-best-16x16.png"))); // NOI18N
+        zoomFitButton.setPreferredSize(new java.awt.Dimension(18, 18));
+        zoomFitButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                zoomFitButtonActionPerformed(evt);
+            }
+        });
+        bottomPanel.add(zoomFitButton);
 
         zoomScrollbar.setMaximum(1000);
         zoomScrollbar.setMinimum(10);
@@ -110,51 +119,90 @@ public class ImageFrame extends BaseFrame {
      *
      * @param zoom the zoom percentage
      */
-    private void setZoomValue(int zoom) {
-        zoomValueBox.setSelectedItem(zoom + "%");
-        imagePanel.setScale(zoom / 100.0);
+    private void setZoomValue(double zoom) {
+        zoomValueBox.setSelectedItem(((int)zoom) + "%");
+        imagePanel.setScale(zoom / 100);
         imagePanel.revalidate();
+        zoomScrollbar.setValue((int)zoom);
+    }
+
+    public void setZoomValue(String zoomValue) {
+        if (zoomValue.endsWith("%")) {
+            zoomValue = zoomValue.substring(0, zoomValue.length()-1);
+        }
+
+        double zoom = 100;
+        if (ZOOM_FIT_VALUE.equals(zoomValue)) {
+            Image img = imagePanel.getImage();
+
+            int width = img.getWidth(null)+2;
+            int height = img.getHeight(null)+2;
+
+            double zoomW = 100, zoomH = 100;
+            if (width > scrollPane.getWidth()) {
+                zoomW = (int)((double)scrollPane.getWidth()/(double)width*100);
+            }
+            if (height > scrollPane.getHeight()) {
+                zoomH = (int)((double)scrollPane.getHeight()/(double)height*100);
+            }
+            zoom = Math.min(zoomW, zoomH);
+        } else {
+            zoom = Integer.parseInt(zoomValue);
+            if ((zoom < 1) || (zoom > MAX_ZOOM)) {
+                throw new IllegalArgumentException("zoom out of range [1," + MAX_ZOOM + "]");
+            }
+        }
+        setZoomValue(zoom);
     }
 
     private void zoomValueBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_zoomValueBoxActionPerformed
         String zoomValue = (String)zoomValueBox.getSelectedItem();
-        int zoom = -1;
         
         if (zoomValue == null) {
             return;
         }
 
-        if (zoomValue.endsWith("%")) {
-            zoomValue = zoomValue.substring(0, zoomValue.length()-1);
-        }
-
-        try {
-            zoom = Integer.parseInt(zoomValue);
-            if ((zoom < 1) || (zoom > MAX_ZOOM)) {
-                throw new IllegalArgumentException("zoom out of range [1," + MAX_ZOOM + "]");
-            }
-            setZoomValue(zoom);
-        } catch (Exception e) {
-            //
-            // do nothing
-            //
-        }
+        setZoomValue(zoomValue);
 }//GEN-LAST:event_zoomValueBoxActionPerformed
 
     private void zoomScrollbarAdjustmentValueChanged(java.awt.event.AdjustmentEvent evt) {//GEN-FIRST:event_zoomScrollbarAdjustmentValueChanged
         setZoomValue(evt.getValue());
     }//GEN-LAST:event_zoomScrollbarAdjustmentValueChanged
 
-    private void initCustomComponents() {
+    private void zoomFitButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_zoomFitButtonActionPerformed
+        setZoomValue(ZOOM_FIT_VALUE);
+    }//GEN-LAST:event_zoomFitButtonActionPerformed
+
+    private void initCustomComponents(Image image) {
         imagePanel = new ImagePanel();
+        imagePanel.setImage(image);
+        initComponents();
+        scrollPane.addComponentListener(
+            new ComponentAdapter() {
+                public void componentResized(java.awt.event.ComponentEvent evt) {
+                    //
+                    // We want to set the zoom to fit the first time the panel
+                    // is displayed. The sizing of the view port is deferred
+                    // from the sizing of the rest of the frame, therefore
+                    // we need to intercept componentResized. We than remove the
+                    // listener since after the first time we do not need it any
+                    // more.
+                    //
+                    setZoomValue(ZOOM_FIT_VALUE);
+                    scrollPane.removeComponentListener(this);
+                }
+            }
+        );
     }
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel bottomPanel;
     private javax.swing.JScrollPane scrollPane;
+    private javax.swing.JButton zoomFitButton;
     private javax.swing.JScrollBar zoomScrollbar;
     private javax.swing.JComboBox zoomValueBox;
     // End of variables declaration//GEN-END:variables
+
 
 }

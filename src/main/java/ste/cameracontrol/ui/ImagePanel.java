@@ -50,6 +50,10 @@ public class ImagePanel extends JComponent {
         repaint();
     }
 
+    public Image getImage() {
+        return img;
+    }
+
     /**
      * @return the scale
      */
@@ -70,7 +74,7 @@ public class ImagePanel extends JComponent {
         if (img == null) {
             return super.getPreferredSize();
         } else {
-            return new Dimension((int)(img.getWidth(this)*scale), (int)(img.getHeight(this)*scale));
+            return new Dimension((int)(img.getWidth(null)*scale), (int)(img.getHeight(null)*scale));
         }
     }
 

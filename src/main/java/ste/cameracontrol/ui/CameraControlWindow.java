@@ -153,7 +153,9 @@ public class CameraControlWindow extends BaseFrame {
                         // jrawio does not work
                         //
                         if (!photo.getName().toLowerCase().endsWith("cr2")) {
+                            System.out.println(System.currentTimeMillis() + " before!");
                             new ImageFrame(photo).setVisible(true);
+                            System.out.println(System.currentTimeMillis() + " after!");
                         }
                     }
                     return null;
@@ -176,9 +178,6 @@ public class CameraControlWindow extends BaseFrame {
     private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem1ActionPerformed
         try {
             BufferedImage img = ImageIO.read(ClassLoader.getSystemResourceAsStream("images/about.png"));
-            for (String s: img.getPropertyNames()) {
-                System.out.println(s);
-            }
             new ImageFrame(img).setVisible(true);
         } catch (IOException e) {
             error(e.getMessage(), e);;

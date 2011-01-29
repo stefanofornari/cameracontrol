@@ -6,6 +6,7 @@
 package ste.cameracontrol.ui;
 
 import java.awt.Dimension;
+import java.awt.Image;
 import javax.imageio.ImageIO;
 import junit.framework.TestCase;
 
@@ -50,6 +51,18 @@ public class ImagePanelTest extends TestCase {
 
          assertEquals(300, d.width);
          assertEquals(225, d.height);
+    }
+
+    public void testGetImage() throws Exception {
+        ImagePanel p = new ImagePanel();
+
+        assertNull(p.getImage());
+
+        p.setImage(ImageIO.read(ClassLoader.getSystemResourceAsStream(TESTFILE)));
+
+        Image i = p.getImage();
+        assertEquals(300, i.getWidth(null));
+        assertEquals(225, i.getHeight(null));
     }
 
 }

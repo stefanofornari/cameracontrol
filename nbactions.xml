@@ -7,6 +7,9 @@
                 <goal>clean</goal>
                 <goal>package</goal>
             </goals>
+            <properties>
+                <maven.test.skip>true</maven.test.skip>
+            </properties>
         </action>
         <action>
             <actionName>CUSTOM-package</actionName>
