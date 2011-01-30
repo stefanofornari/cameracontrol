@@ -37,7 +37,9 @@ public class ImageFrame extends BaseFrame {
         "150%", "200%", "300%", "500%", "1000%"
     };
     public static final int MAX_ZOOM = 1000;
+    
     public static final String ZOOM_FIT_VALUE = "Fit";
+    public static final String ZOOM_ORIGINAL_VALUE = "100%";
 
     private ImagePanel imagePanel;
 
@@ -64,6 +66,7 @@ public class ImageFrame extends BaseFrame {
         scrollPane = new javax.swing.JScrollPane(imagePanel);
         bottomPanel = new javax.swing.JPanel();
         zoomFitButton = new javax.swing.JButton();
+        zoom100Button = new javax.swing.JButton();
         zoomScrollbar = new javax.swing.JScrollBar();
         zoomValueBox = new javax.swing.JComboBox(ZOOM_VALUES);
 
@@ -73,7 +76,7 @@ public class ImageFrame extends BaseFrame {
         scrollPane.setName("scrollpane"); // NOI18N
         getContentPane().add(scrollPane, java.awt.BorderLayout.CENTER);
 
-        bottomPanel.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT));
+        bottomPanel.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 2, 3));
 
         zoomFitButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/zoom-fit-best-16x16.png"))); // NOI18N
         zoomFitButton.setPreferredSize(new java.awt.Dimension(18, 18));
@@ -83,6 +86,15 @@ public class ImageFrame extends BaseFrame {
             }
         });
         bottomPanel.add(zoomFitButton);
+
+        zoom100Button.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/zoom-original-16x16.png"))); // NOI18N
+        zoom100Button.setPreferredSize(new java.awt.Dimension(18, 18));
+        zoom100Button.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                zoom100ButtonActionPerformed(evt);
+            }
+        });
+        bottomPanel.add(zoom100Button);
 
         zoomScrollbar.setMaximum(1000);
         zoomScrollbar.setMinimum(10);
@@ -173,6 +185,10 @@ public class ImageFrame extends BaseFrame {
         setZoomValue(ZOOM_FIT_VALUE);
     }//GEN-LAST:event_zoomFitButtonActionPerformed
 
+    private void zoom100ButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_zoom100ButtonActionPerformed
+        setZoomValue(ZOOM_ORIGINAL_VALUE);
+    }//GEN-LAST:event_zoom100ButtonActionPerformed
+
     private void initCustomComponents(Image image) {
         imagePanel = new ImagePanel();
         imagePanel.setImage(image);
@@ -199,6 +215,7 @@ public class ImageFrame extends BaseFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel bottomPanel;
     private javax.swing.JScrollPane scrollPane;
+    private javax.swing.JButton zoom100Button;
     private javax.swing.JButton zoomFitButton;
     private javax.swing.JScrollBar zoomScrollbar;
     private javax.swing.JComboBox zoomValueBox;

@@ -26,6 +26,7 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import javax.imageio.ImageIO;
 import javax.swing.SwingWorker;
+
 import org.apache.commons.lang.StringUtils;
 
 import ste.cameracontrol.CameraController;
@@ -140,35 +141,37 @@ public class CameraControlWindow extends BaseFrame {
 
     private void shootMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_shootMenuItemActionPerformed
         setStatus("Taking picture");
-        try {
-            new SwingWorker<Void, Object>() {
-                @Override
-                public Void doInBackground() throws Exception {
-                    setStatus("Wait...");
-                    Photo photos[] = controller.shootAndDownload();
-                    
-                    for (Photo photo: photos) {
-                        //
-                        // TODO: remove this limitation; the current version of
-                        // jrawio does not work
-                        //
-                        if (!photo.getName().toLowerCase().endsWith("cr2")) {
-                            System.out.println(System.currentTimeMillis() + " before!");
-                            new ImageFrame(photo).setVisible(true);
-                            System.out.println(System.currentTimeMillis() + " after!");
-                        }
-                    }
+        new SwingWorker<Void, Object>() {
+            @Override
+            public Void doInBackground() {
+                setStatus("Wait...");
+                Photo photos[] = null;
+                try {
+                    photos = controller.shootAndDownload();
+                } catch (Exception e) {
+                    error(e.getMessage(), e);
                     return null;
                 }
 
-                @Override
-                protected void done() {
-                    setStatus("");
+                for (Photo photo: photos) {
+                    //
+                    // TODO: remove this limitation; the current version of
+                    // jrawio does not work
+                    //
+                    if (!photo.getName().toLowerCase().endsWith("cr2")) {
+                        System.out.println(System.currentTimeMillis() + " before!");
+                        new ImageFrame(photo).setVisible(true);
+                        System.out.println(System.currentTimeMillis() + " after!");
+                    }
                 }
-            }.execute();
-        } catch (Exception e) {
-            error("Error capturing the picture: " + e.getMessage(), e);
-        }
+                return null;
+            }
+
+            @Override
+            protected void done() {
+                setStatus("");
+            }
+        }.execute();
     }//GEN-LAST:event_shootMenuItemActionPerformed
 
     private void aboutMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_aboutMenuItemActionPerformed

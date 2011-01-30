@@ -2,3 +2,6 @@
 - completed US5 Shoot and view
 20110129
 - completed US12 Initial photo zoom
+20110130
+- fixed bug #15
+- implemented US17
