@@ -56,12 +56,14 @@
             <version>1.4</version>
             <scope>test</scope>
         </dependency>
+        <!--
         <dependency>
             <groupId>org.rawdarkroom</groupId>
             <artifactId>jrawio</artifactId>
             <version>1.6.1</version>
             <scope>runtime</scope>
         </dependency>
+        -->
     </dependencies>
 
     <build>

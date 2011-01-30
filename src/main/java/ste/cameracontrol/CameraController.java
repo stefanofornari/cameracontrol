@@ -46,6 +46,9 @@ import ste.ptp.eos.EosInitiator;
  * aspects of the interaction with the camera, from connectivity to picture
  * download and other controlling functions.
  *
+ * CameraController implements the Singleton design patter, so that you can have
+ * only one instance of the controller in your program.
+ *
  * @author ste
  */
 public class CameraController implements Runnable {
@@ -67,9 +70,14 @@ public class CameraController implements Runnable {
     private EosInitiator device;
 
     /**
+     * The singleton
+     */
+    private static final CameraController instance = new CameraController();
+
+    /**
      * Creates a new CameraController
      */
-    public CameraController() {
+    protected CameraController() {
         this(new Configuration());
     }
 
@@ -80,17 +88,36 @@ public class CameraController implements Runnable {
      * 
      * @throws  IllegalArgumentException if configuration is null
      */
-    public CameraController(Configuration configuration) {
+    protected CameraController(Configuration configuration) {
         if (configuration == null) {
             throw new IllegalArgumentException("configuration cannot be null");
         }
+        
+        this.configuration = configuration;
+        
+        reset();
+    }
+
+    /**
+     * Resets the current camera controller reinitializing all relevant instance
+     * data.
+     */
+    private void reset() {
         connection = new CameraConnection();
         listeners = new ArrayList<CameraListener>();
         cameraMonitorActive = false;
         cameraConnected = false;
         camera = null;
-        this.configuration = configuration;
         checkCamera();
+    }
+
+    /**
+     * Returns the singleton instance of CameraController
+     * 
+     * @return the the singleton instance of CameraControllers
+     */
+    public static CameraController getInstance() {
+        return instance;
     }
 
 
@@ -101,6 +128,20 @@ public class CameraController implements Runnable {
      */
     public Configuration getConfiguration() {
         return configuration;
+    }
+
+    /**
+     * Sets the configuration for the CameraController
+     *
+     * @param configuration the new Configuration object - NOT NULL
+     *
+     * @throws IllegalArgumentException in the case configuration is null
+     */
+    public void setConfiguration(Configuration configuration) {
+        if (configuration == null) {
+            throw new IllegalArgumentException("configuration cannot be null");
+        }
+        this.configuration = configuration;
     }
 
     /**

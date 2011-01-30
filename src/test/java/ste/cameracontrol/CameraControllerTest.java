@@ -25,6 +25,7 @@ package ste.cameracontrol;
 import ch.ntb.usb.LibusbJava;
 import ch.ntb.usb.devinf.CanonEOS1000D;
 import java.io.File;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import junit.framework.Test;
 import junit.framework.TestCase;
@@ -81,6 +82,10 @@ public class CameraControllerTest
 
         CONFIG = new Configuration();
         CONFIG.setImageDir(IMAGE_DIR);
+
+        CONTROLLER = CameraController.getInstance();
+        CONTROLLER.setConfiguration(CONFIG);
+        resetController();
     }
 
     @Override
@@ -103,19 +108,35 @@ public class CameraControllerTest
         m.invoke(CONTROLLER);
     }
 
-    public void testCameraIsConnected() {
-        LibusbJava.init(new CanonEOS1000D(true));
-        assertTrue(new CameraController().isConnected());
+    private void resetController() throws Exception {
+        Method m = CONTROLLER.getClass().getDeclaredMethod("reset");
+        m.setAccessible(true);
+        m.invoke(CONTROLLER);
     }
 
-    public void testCameraIsNotConnected() {
+    public void testSingleton() throws Exception {
+        CameraController c1 = CameraController.getInstance();
+        CameraController c2 = CameraController.getInstance();
+
+        assertNotNull(c1);
+        assertSame(c1, c2);
+    }
+
+    public void testCameraIsConnected() throws Exception {
+        LibusbJava.init(new CanonEOS1000D(true));
+        resetController();
+        assertTrue(CONTROLLER.isConnected());
+    }
+
+    public void testCameraIsNotConnected() throws Exception {
         LibusbJava.init(new CanonEOS1000D(false));
-        assertFalse(new CameraController().isConnected());
+        resetController();
+        assertFalse(CONTROLLER.isConnected());
     }
 
     public void testNoFireConnectionEvent() throws Exception {
         LibusbJava.init(new CanonEOS1000D(true));
-        CONTROLLER = new CameraController();
+        resetController();
         fireCameraConnectionEvent();
 
         //
@@ -124,15 +145,13 @@ public class CameraControllerTest
     }
 
     public void testInitializeWithConfiguration() {
-        CONTROLLER = new CameraController(CONFIG);
-
         Configuration c = CONTROLLER.getConfiguration();
         assertEquals(IMAGE_DIR, c.getImageDir());
     }
 
     public void testInitializeWithWrongConfiguration() {
         try {
-            CONTROLLER = new CameraController(null);
+            CONTROLLER.setConfiguration(null);
             fail("the configuration object cannot be null");
         } catch (IllegalArgumentException e) {
             //
@@ -143,7 +162,6 @@ public class CameraControllerTest
         
 
     public void testFireConnectionEvent() throws Exception {
-        CONTROLLER = new CameraController();
         ConnectedEventListener[] listeners = {
                 new ConnectedEventListener(),
                 new ConnectedEventListener()
@@ -164,7 +182,6 @@ public class CameraControllerTest
         ConnectedEventListener l = new ConnectedEventListener();
 
         LibusbJava.init(new CanonEOS1000D(false));
-        CONTROLLER = new CameraController();
         CONTROLLER.addCameraListener(l);
         CONTROLLER.startCameraMonitor();
         Thread.sleep(100);
@@ -182,7 +199,7 @@ public class CameraControllerTest
 
     public void testStopCameraMonitor() throws Exception {
         LibusbJava.init(new CanonEOS1000D(true));
-        CONTROLLER = new CameraController();
+        resetController();
         ConnectedEventListener l = new ConnectedEventListener();
 
         //
@@ -213,8 +230,8 @@ public class CameraControllerTest
     public void testDetectValidDevice() throws Exception  {
         CanonEOS1000D devinfo = new CanonEOS1000D(true);
         LibusbJava.init(devinfo);
+        resetController();
         
-        CONTROLLER = new CameraController();
         ConnectedEventListener l = new ConnectedEventListener();
         CONTROLLER.addCameraListener(l);
         fireCameraConnectionEvent();
@@ -224,7 +241,6 @@ public class CameraControllerTest
     }
 
     public void testShootOK() throws Exception  {
-        CONTROLLER = new CameraController();
         CONTROLLER.startCamera();
         CONTROLLER.shoot();
 
@@ -235,7 +251,6 @@ public class CameraControllerTest
         EosInitiator.shootError = true;
 
         try {
-            CONTROLLER = new CameraController();
             CONTROLLER.startCamera();
             CONTROLLER.shoot();
             fail("Error not thrown");
@@ -245,7 +260,6 @@ public class CameraControllerTest
     }
 
     public void testDownloadObject() throws Exception {
-        CONTROLLER = new CameraController(CONFIG);
         CONTROLLER.startCamera();
 
         Photo photo = CONTROLLER.downloadPhoto(1, 256, "capture.jpg");
@@ -269,7 +283,6 @@ public class CameraControllerTest
         
         EosInitiator.events.add(photo1); EosInitiator.events.add(photo2);
 
-        CONTROLLER = new CameraController(CONFIG);
         CONTROLLER.startCamera();
         Photo[] photos = CONTROLLER.shootAndDownload();
 
