@@ -44,4 +44,9 @@ public class CameraControlWindow {
     public void setController(CameraController c) {
     }
 
+    public void error(String msg, Throwable t) {
+        System.out.println(msg);
+        t.printStackTrace();
+    }
+
 }

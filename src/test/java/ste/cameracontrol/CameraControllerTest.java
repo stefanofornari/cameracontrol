@@ -25,11 +25,11 @@ package ste.cameracontrol;
 import ch.ntb.usb.LibusbJava;
 import ch.ntb.usb.devinf.CanonEOS1000D;
 import java.io.File;
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
+import org.apache.commons.io.IOUtils;
 import ste.cameracontrol.event.ConnectedEventListener;
 import ste.ptp.PTPException;
 import ste.ptp.Response;
@@ -42,7 +42,9 @@ import ste.ptp.eos.EosInitiator;
 public class CameraControllerTest
         extends TestCase {
 
-    public final String IMAGE_DIR = "/tmp/cameracontrol";
+    public final String IMAGE_DIR      = "/tmp/cameracontrol";
+    public final String IMAGE_NAME_JPG = "capture.jpg";
+    public final String IMAGE_NAME_CR2 = "capture.cr2";
     
     private CameraController CONTROLLER = null;
     private Configuration    CONFIG     = null;
@@ -86,6 +88,8 @@ public class CameraControllerTest
         CONTROLLER = CameraController.getInstance();
         CONTROLLER.setConfiguration(CONFIG);
         resetController();
+
+        new File(IMAGE_DIR, IMAGE_NAME_JPG).delete();
     }
 
     @Override
@@ -113,6 +117,13 @@ public class CameraControllerTest
         m.setAccessible(true);
         m.invoke(CONTROLLER);
     }
+
+    private void sanityCheck() throws Exception {
+        Method m = CONTROLLER.getClass().getDeclaredMethod("sanityCheck");
+        m.setAccessible(true);
+        m.invoke(CONTROLLER);
+    }
+
 
     public void testSingleton() throws Exception {
         CameraController c1 = CameraController.getInstance();
@@ -159,9 +170,34 @@ public class CameraControllerTest
             //
         }
     }
+
+    /**
+     * This methods tests that when the camera disconnects, the controller
+     * properly re-initialize it-self so to reflect that no camera is connected.
+     * Sanity check on it should then fail.
+     * 
+     * @throws Exception
+     */
+    public void testDeviceDisconnect() throws Exception {
+        LibusbJava.init(new CanonEOS1000D(true));
+        resetController();
+        CONTROLLER.startCamera();
+
+        LibusbJava.init(new CanonEOS1000D(false));
+        try {
+            CONTROLLER.startCamera();
+            fail("sanity check should fail at this point!");
+        } catch (PTPException e) {
+            //
+            // Expected behaviour
+            //
+        }
+    }
         
 
     public void testFireConnectionEvent() throws Exception {
+        LibusbJava.init(new CanonEOS1000D(true));
+        resetController();
         ConnectedEventListener[] listeners = {
                 new ConnectedEventListener(),
                 new ConnectedEventListener()
@@ -262,13 +298,13 @@ public class CameraControllerTest
     public void testDownloadObject() throws Exception {
         CONTROLLER.startCamera();
 
-        Photo photo = CONTROLLER.downloadPhoto(1, 256, "capture.jpg");
+        Photo photo = CONTROLLER.downloadPhoto(1, 256, IMAGE_NAME_JPG);
 
         assertTrue(EosInitiator.invoked.contains("getPartialObject"));
         assertTrue(EosInitiator.invoked.contains("transferComplete"));
 
         assertNotNull(photo);
-        assertEquals("capture.jpg", photo.getName());
+        assertEquals(IMAGE_NAME_JPG, photo.getName());
     }
 
     public void testShootAndCapture() throws Exception {
@@ -279,7 +315,7 @@ public class CameraControllerTest
         photo2.setCode(EosEvent.EosEventObjectAddedEx);
         photo1.setParam(1, 1); photo2.setParam(1, 1);
         photo1.setParam(5, 256); photo2.setParam(5, 256);
-        photo1.setParam(6, "capture.jpg"); photo2.setParam(6, "capture.cr2");
+        photo1.setParam(6, IMAGE_NAME_JPG); photo2.setParam(6, IMAGE_NAME_CR2);
         
         EosInitiator.events.add(photo1); EosInitiator.events.add(photo2);
 
@@ -288,7 +324,19 @@ public class CameraControllerTest
 
         assertTrue(EosInitiator.invoked.contains("initiateCapture"));
         assertEquals(2, photos.length);
-        assertEquals("capture.jpg", photos[0].getName());
-        assertEquals("capture.cr2", photos[1].getName());
+        assertEquals(IMAGE_NAME_JPG, photos[0].getName());
+        assertEquals(IMAGE_NAME_CR2, photos[1].getName());
+    }
+
+    public void testSavePhoto() throws Exception {
+        byte[] data = IOUtils.toByteArray(ClassLoader.getSystemResourceAsStream("images/about.png"));
+        Photo photo = new Photo(IMAGE_NAME_JPG, data);
+
+        CONTROLLER.savePhoto(photo);
+
+        File f = new File(IMAGE_DIR, IMAGE_NAME_JPG);
+        assertTrue(f.exists());
+        assertEquals(179083, f.length());
+
     }
 }

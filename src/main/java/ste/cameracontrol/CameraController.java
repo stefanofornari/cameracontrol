@@ -32,6 +32,7 @@ import ch.ntb.usb.UsbDevice;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 
 import ste.ptp.DeviceInfo;
 import ste.ptp.OutputStreamData;
@@ -106,8 +107,6 @@ public class CameraController implements Runnable {
         connection = new CameraConnection();
         listeners = new ArrayList<CameraListener>();
         cameraMonitorActive = false;
-        cameraConnected = false;
-        camera = null;
         checkCamera();
     }
 
@@ -374,8 +373,7 @@ public class CameraController implements Runnable {
         cameraConnected = (dev != null);
 
         if (dev == null) {
-            camera = null;
-            cameraConnected = false;
+            cameraCleanup();
         } else {
             camera = USB.getDevice(
                          dev.getDescriptor().getVendorId(),
@@ -418,9 +416,6 @@ public class CameraController implements Runnable {
         if (session) {
             device.openSession();
         }
-
-        System.out.print("PTP device at ");
-        System.out.println(camera);
     }
 
     public void releaseCamera() {
@@ -428,6 +423,31 @@ public class CameraController implements Runnable {
             device.closeSession();
         } catch (Exception e) {
             // ignore everything!
+        }
+        cameraCleanup();
+    }
+
+    /**
+     * Save the given Photo in the controller's configured directory
+     *
+     * @param photo - NULL
+     *
+     * @throws IOException in case of IO errors
+     */
+    public void savePhoto(Photo photo) throws IOException {
+        File f = new File(configuration.getImageDir(), photo.getName());
+        FileOutputStream fos = null;
+        try {
+            fos = new FileOutputStream(f);
+            fos.write(photo.getRawData());
+        } finally {
+            if (fos != null) {
+                try {
+                    fos.close();
+                } catch (IOException e) {
+                }
+                fos = null;
+            }
         }
     }
 
@@ -437,5 +457,11 @@ public class CameraController implements Runnable {
         if (device == null) {
             throw new CameraNotAvailableException();
         }
+    }
+
+    private void cameraCleanup() {
+        camera = null;
+        cameraConnected = false;
+        device = null;
     }
 }

@@ -23,6 +23,8 @@ package ste.cameracontrol.ui;
 
 import java.awt.Image;
 import java.awt.event.ComponentAdapter;
+import java.io.IOException;
+import ste.cameracontrol.CameraController;
 
 import ste.cameracontrol.Photo;
 
@@ -37,11 +39,15 @@ public class ImageFrame extends BaseFrame {
         "150%", "200%", "300%", "500%", "1000%"
     };
     public static final int MAX_ZOOM = 1000;
+
+    public static final String ICON_IMAGE_SAVED = "images/image-saved-16x16.png";
     
     public static final String ZOOM_FIT_VALUE = "Fit";
     public static final String ZOOM_ORIGINAL_VALUE = "100%";
 
     private ImagePanel imagePanel;
+
+    private Photo photo;
 
     /** Creates new ImageFrame */
     public ImageFrame(Image image) {
@@ -50,6 +56,7 @@ public class ImageFrame extends BaseFrame {
 
     /** Creates new ImageFrame */
     public ImageFrame(Photo photo) {
+        this.photo = photo;
         initCustomComponents(photo.getImage());
         setTitle(photo.getName());
     }
@@ -65,6 +72,9 @@ public class ImageFrame extends BaseFrame {
 
         scrollPane = new javax.swing.JScrollPane(imagePanel);
         bottomPanel = new javax.swing.JPanel();
+        buttonsPanel = new javax.swing.JPanel();
+        saveButton = new javax.swing.JButton();
+        jPanel1 = new javax.swing.JPanel();
         zoomFitButton = new javax.swing.JButton();
         zoom100Button = new javax.swing.JButton();
         zoomScrollbar = new javax.swing.JScrollBar();
@@ -76,25 +86,48 @@ public class ImageFrame extends BaseFrame {
         scrollPane.setName("scrollpane"); // NOI18N
         getContentPane().add(scrollPane, java.awt.BorderLayout.CENTER);
 
-        bottomPanel.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 2, 3));
+        bottomPanel.setLayout(new javax.swing.BoxLayout(bottomPanel, javax.swing.BoxLayout.LINE_AXIS));
+
+        buttonsPanel.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEADING, 0, 3));
+
+        saveButton.setFont(new java.awt.Font("Arial", 0, 10)); // NOI18N
+        saveButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/image-not-saved-16x16.png"))); // NOI18N
+        saveButton.setText("Save");
+        saveButton.setMaximumSize(new java.awt.Dimension(56, 20));
+        saveButton.setMinimumSize(new java.awt.Dimension(56, 20));
+        saveButton.setPreferredSize(new java.awt.Dimension(56, 20));
+        saveButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                saveButtonActionPerformed(evt);
+            }
+        });
+        buttonsPanel.add(saveButton);
+
+        bottomPanel.add(buttonsPanel);
+
+        jPanel1.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 0, 3));
 
         zoomFitButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/zoom-fit-best-16x16.png"))); // NOI18N
-        zoomFitButton.setPreferredSize(new java.awt.Dimension(18, 18));
+        zoomFitButton.setMaximumSize(new java.awt.Dimension(20, 20));
+        zoomFitButton.setMinimumSize(new java.awt.Dimension(20, 20));
+        zoomFitButton.setPreferredSize(new java.awt.Dimension(20, 20));
         zoomFitButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 zoomFitButtonActionPerformed(evt);
             }
         });
-        bottomPanel.add(zoomFitButton);
+        jPanel1.add(zoomFitButton);
 
         zoom100Button.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/zoom-original-16x16.png"))); // NOI18N
-        zoom100Button.setPreferredSize(new java.awt.Dimension(18, 18));
+        zoom100Button.setMaximumSize(new java.awt.Dimension(20, 20));
+        zoom100Button.setMinimumSize(new java.awt.Dimension(20, 20));
+        zoom100Button.setPreferredSize(new java.awt.Dimension(20, 20));
         zoom100Button.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 zoom100ButtonActionPerformed(evt);
             }
         });
-        bottomPanel.add(zoom100Button);
+        jPanel1.add(zoom100Button);
 
         zoomScrollbar.setMaximum(1000);
         zoomScrollbar.setMinimum(10);
@@ -102,23 +135,28 @@ public class ImageFrame extends BaseFrame {
         zoomScrollbar.setUnitIncrement(10);
         zoomScrollbar.setValue(100);
         zoomScrollbar.setVisibleAmount(1);
-        zoomScrollbar.setPreferredSize(new java.awt.Dimension(100, 17));
+        zoomScrollbar.setPreferredSize(new java.awt.Dimension(100, 20));
         zoomScrollbar.addAdjustmentListener(new java.awt.event.AdjustmentListener() {
             public void adjustmentValueChanged(java.awt.event.AdjustmentEvent evt) {
                 zoomScrollbarAdjustmentValueChanged(evt);
             }
         });
-        bottomPanel.add(zoomScrollbar);
+        jPanel1.add(zoomScrollbar);
 
         zoomValueBox.setEditable(true);
-        zoomValueBox.setMinimumSize(new java.awt.Dimension(80, 19));
-        zoomValueBox.setPreferredSize(new java.awt.Dimension(75, 19));
+        zoomValueBox.setFont(new java.awt.Font("Arial", 0, 10)); // NOI18N
+        zoomValueBox.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
+        zoomValueBox.setMaximumSize(new java.awt.Dimension(75, 19));
+        zoomValueBox.setMinimumSize(new java.awt.Dimension(75, 19));
+        zoomValueBox.setPreferredSize(new java.awt.Dimension(75, 20));
         zoomValueBox.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 zoomValueBoxActionPerformed(evt);
             }
         });
-        bottomPanel.add(zoomValueBox);
+        jPanel1.add(zoomValueBox);
+
+        bottomPanel.add(jPanel1);
 
         getContentPane().add(bottomPanel, java.awt.BorderLayout.SOUTH);
 
@@ -189,6 +227,15 @@ public class ImageFrame extends BaseFrame {
         setZoomValue(ZOOM_ORIGINAL_VALUE);
     }//GEN-LAST:event_zoom100ButtonActionPerformed
 
+    private void saveButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveButtonActionPerformed
+        try {
+            CameraController.getInstance().savePhoto(photo);
+            saveButton.setIcon(getIcon(ICON_IMAGE_SAVED));
+        } catch (IOException e) {
+            error("Error saving " + photo.getName(), e);
+        }
+    }//GEN-LAST:event_saveButtonActionPerformed
+
     private void initCustomComponents(Image image) {
         imagePanel = new ImagePanel();
         imagePanel.setImage(image);
@@ -214,6 +261,9 @@ public class ImageFrame extends BaseFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel bottomPanel;
+    private javax.swing.JPanel buttonsPanel;
+    private javax.swing.JPanel jPanel1;
+    private javax.swing.JButton saveButton;
     private javax.swing.JScrollPane scrollPane;
     private javax.swing.JButton zoom100Button;
     private javax.swing.JButton zoomFitButton;

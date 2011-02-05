@@ -30,12 +30,11 @@ import ste.cameracontrol.ui.CameraControlWindow;
 import ste.ptp.PTPBusyException;
 
 /**
- * Hello world!
+ *
  *
  */
 public class CameraControlMain implements CameraListener {
 
-    private CameraController controller;
     private CameraControlWindow window;
 
     private DeviceDatabase deviceDatabase;
@@ -62,8 +61,9 @@ public class CameraControlMain implements CameraListener {
         if (!imageDir.exists()) {
             imageDir.mkdirs();
         }
-        
-        controller = new CameraController(c);
+
+        CameraController controller = CameraController.getInstance();
+        controller.setConfiguration(c);
         controller.addCameraListener(this);
         
         window = new CameraControlWindow();
@@ -81,7 +81,7 @@ public class CameraControlMain implements CameraListener {
         //
         for (int i = 0; i<3; ++i) {
             try {
-                controller.startCamera();
+                CameraController.getInstance().startCamera();
             } catch (PTPBusyException e) {
                 continue;
             } catch (Exception e) {

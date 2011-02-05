@@ -159,9 +159,7 @@ public class CameraControlWindow extends BaseFrame {
                     // jrawio does not work
                     //
                     if (!photo.getName().toLowerCase().endsWith("cr2")) {
-                        System.out.println(System.currentTimeMillis() + " before!");
                         new ImageFrame(photo).setVisible(true);
-                        System.out.println(System.currentTimeMillis() + " after!");
                     }
                 }
                 return null;

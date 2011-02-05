@@ -26,6 +26,7 @@ import ch.ntb.usb.LibusbJava;
 import ch.ntb.usb.devinf.CanonEOS1000D;
 import java.io.File;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import junit.framework.TestCase;
 
 import ste.cameracontrol.ui.CameraControlWindow;
@@ -65,22 +66,22 @@ public class CameraControlMainTest extends TestCase {
         super.tearDown();
     }
 
+    private void resetController() throws Exception {
+        CameraController c = CameraController.getInstance();
+        Method m = c.getClass().getDeclaredMethod("reset");
+        m.setAccessible(true);
+        m.invoke(c);
+    }
+
     private CameraControlWindow getWindow() throws Exception {
         Field f = CameraControlMain.class.getDeclaredField("window");
         f.setAccessible(true);
 
         return (CameraControlWindow)f.get(cameraControl);
     }
-    
-    private CameraController getController() throws Exception {
-        Field f = CameraControlMain.class.getDeclaredField("controller");
-        f.setAccessible(true);
-
-        return (CameraController)f.get(cameraControl);
-    }
 
     public void testControllerConfiguration() throws Exception {
-        Configuration c = getController().getConfiguration();
+        Configuration c = CameraController.getInstance().getConfiguration();
         assertNotNull(c.getImageDir());
         assertTrue((new File(c.getImageDir())).exists());
     }

@@ -392,17 +392,7 @@ public class CameraControlCLI {
         Photo[] photos = controller.shootAndDownload();
 
         for (Photo photo: photos) {
-            File f = new File(directory, photo.getName());
-            FileOutputStream fos = null;
-            try {
-                 fos = new FileOutputStream(f);
-                 fos.write(photo.getRawData());
-            } finally  {
-                if (fos != null) {
-                    try {fos.close();} catch (IOException e) {}
-                    fos  = null;
-                }
-            }
+            controller.savePhoto(photo);
         }
     }
 }
