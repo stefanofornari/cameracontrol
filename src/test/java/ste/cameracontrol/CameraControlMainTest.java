@@ -66,13 +66,6 @@ public class CameraControlMainTest extends TestCase {
         super.tearDown();
     }
 
-    private void resetController() throws Exception {
-        CameraController c = CameraController.getInstance();
-        Method m = c.getClass().getDeclaredMethod("reset");
-        m.setAccessible(true);
-        m.invoke(c);
-    }
-
     private CameraControlWindow getWindow() throws Exception {
         Field f = CameraControlMain.class.getDeclaredField("window");
         f.setAccessible(true);
@@ -88,6 +81,7 @@ public class CameraControlMainTest extends TestCase {
 
     public void testCameraConnected() throws Exception {
         LibusbJava.init(new CanonEOS1000D(true));
+        CameraController.getInstance().initialize();
         Thread.sleep(100);
         assertNotNull(window.status);
     }

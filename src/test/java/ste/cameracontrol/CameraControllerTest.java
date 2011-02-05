@@ -86,8 +86,7 @@ public class CameraControllerTest
         CONFIG.setImageDir(IMAGE_DIR);
 
         CONTROLLER = CameraController.getInstance();
-        CONTROLLER.setConfiguration(CONFIG);
-        resetController();
+        CONTROLLER.initialize(CONFIG);
 
         new File(IMAGE_DIR, IMAGE_NAME_JPG).delete();
     }
@@ -112,18 +111,15 @@ public class CameraControllerTest
         m.invoke(CONTROLLER);
     }
 
-    private void resetController() throws Exception {
-        Method m = CONTROLLER.getClass().getDeclaredMethod("reset");
-        m.setAccessible(true);
-        m.invoke(CONTROLLER);
+    private void setCameraStatus(boolean connected) throws Exception {
+        LibusbJava.init(new CanonEOS1000D(connected));
+        CONTROLLER.initialize();
     }
 
-    private void sanityCheck() throws Exception {
-        Method m = CONTROLLER.getClass().getDeclaredMethod("sanityCheck");
-        m.setAccessible(true);
-        m.invoke(CONTROLLER);
+    private void setCameraStatus(boolean connected, Configuration c) throws Exception {
+        LibusbJava.init(new CanonEOS1000D(connected));
+        CONTROLLER.initialize(c);
     }
-
 
     public void testSingleton() throws Exception {
         CameraController c1 = CameraController.getInstance();
@@ -134,20 +130,17 @@ public class CameraControllerTest
     }
 
     public void testCameraIsConnected() throws Exception {
-        LibusbJava.init(new CanonEOS1000D(true));
-        resetController();
+        setCameraStatus(true);
         assertTrue(CONTROLLER.isConnected());
     }
 
     public void testCameraIsNotConnected() throws Exception {
-        LibusbJava.init(new CanonEOS1000D(false));
-        resetController();
+        setCameraStatus(false);
         assertFalse(CONTROLLER.isConnected());
     }
 
     public void testNoFireConnectionEvent() throws Exception {
-        LibusbJava.init(new CanonEOS1000D(true));
-        resetController();
+        setCameraStatus(true);
         fireCameraConnectionEvent();
 
         //
@@ -162,7 +155,7 @@ public class CameraControllerTest
 
     public void testInitializeWithWrongConfiguration() {
         try {
-            CONTROLLER.setConfiguration(null);
+            CONTROLLER.initialize(null);
             fail("the configuration object cannot be null");
         } catch (IllegalArgumentException e) {
             //
@@ -172,15 +165,14 @@ public class CameraControllerTest
     }
 
     /**
-     * This methods tests that when the camera disconnects, the controller
-     * properly re-initialize it-self so to reflect that no camera is connected.
-     * Sanity check on it should then fail.
+     * This methods tests that when the camera disconnects and reconnects, the
+     * controller properly re-initialize it-self so to reflect that no camera is
+     * connected.
      * 
      * @throws Exception
      */
-    public void testDeviceDisconnect() throws Exception {
-        LibusbJava.init(new CanonEOS1000D(true));
-        resetController();
+    public void testDeviceConnectAndDisconnect() throws Exception {
+        setCameraStatus(true);
         CONTROLLER.startCamera();
 
         LibusbJava.init(new CanonEOS1000D(false));
@@ -192,12 +184,14 @@ public class CameraControllerTest
             // Expected behaviour
             //
         }
+
+        LibusbJava.init(new CanonEOS1000D(true));
+        CONTROLLER.startCamera();
     }
         
 
     public void testFireConnectionEvent() throws Exception {
-        LibusbJava.init(new CanonEOS1000D(true));
-        resetController();
+        setCameraStatus(true);
         ConnectedEventListener[] listeners = {
                 new ConnectedEventListener(),
                 new ConnectedEventListener()
@@ -215,16 +209,18 @@ public class CameraControllerTest
     }
 
     public void testStartCameraMonitor() throws Exception {
+        setCameraStatus(false);
         ConnectedEventListener l = new ConnectedEventListener();
 
-        LibusbJava.init(new CanonEOS1000D(false));
         CONTROLLER.addCameraListener(l);
         CONTROLLER.startCameraMonitor();
         Thread.sleep(100);
         assertNull(l.device);
+
         LibusbJava.init(new CanonEOS1000D(true));
         Thread.sleep(100);
         assertNotNull(l.device);
+
         //
         // It has to notify only changes
         //
@@ -234,8 +230,7 @@ public class CameraControllerTest
     }
 
     public void testStopCameraMonitor() throws Exception {
-        LibusbJava.init(new CanonEOS1000D(true));
-        resetController();
+        setCameraStatus(true);
         ConnectedEventListener l = new ConnectedEventListener();
 
         //
@@ -252,7 +247,7 @@ public class CameraControllerTest
         CONTROLLER.startCameraMonitor();
         Thread.sleep(100);
         assertNotNull(l.device);
-
+        
         //
         // Let's stop the monitor and detach the camera
         //
@@ -266,7 +261,7 @@ public class CameraControllerTest
     public void testDetectValidDevice() throws Exception  {
         CanonEOS1000D devinfo = new CanonEOS1000D(true);
         LibusbJava.init(devinfo);
-        resetController();
+        CONTROLLER.initialize();
         
         ConnectedEventListener l = new ConnectedEventListener();
         CONTROLLER.addCameraListener(l);

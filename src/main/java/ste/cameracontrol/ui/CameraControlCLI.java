@@ -294,7 +294,7 @@ public class CameraControlCLI {
             Configuration c = new Configuration();
             c.setImageDir(directory.getAbsolutePath());
             controller = CameraController.getInstance();
-            controller.setConfiguration(c);
+            controller.initialize(c);
             controller.startCamera();
 
             for (String arg: line.getArgs()) {

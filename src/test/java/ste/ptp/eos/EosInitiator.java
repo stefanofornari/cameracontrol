@@ -88,4 +88,8 @@ public class EosInitiator extends NameFactory {
         invoked.add("transferComplete");
     }
 
+    public void close() {
+        invoked.add("close");
+    }
+
 }

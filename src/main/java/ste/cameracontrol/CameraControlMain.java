@@ -63,11 +63,10 @@ public class CameraControlMain implements CameraListener {
         }
 
         CameraController controller = CameraController.getInstance();
-        controller.setConfiguration(c);
+        controller.initialize(c);
         controller.addCameraListener(this);
         
         window = new CameraControlWindow();
-        window.setController(controller);
         window.setVisible(true);
 
         controller.startCameraMonitor();
@@ -79,18 +78,21 @@ public class CameraControlMain implements CameraListener {
         // Soon after the USB device is detected, the system may keep the device
         // busy for a little while, Therefore we try 3 times before giving up.
         //
-        for (int i = 0; i<3; ++i) {
+        String cameraName = null;
+        for (int i = 0; i<10; ++i) {
             try {
                 CameraController.getInstance().startCamera();
+                cameraName = device.getDisplayName();
+                break;
             } catch (PTPBusyException e) {
+                try { Thread.sleep(2000); } catch (Exception ignore) {}
                 continue;
             } catch (Exception e) {
-                window.setConnectionStatus(null);
-                window.error(null, e);
-                return;
+                window.error(null, e); 
+                break;
             }
         }
-        window.setConnectionStatus(device.getDisplayName());
+        window.setConnectionStatus(cameraName);
     }
 
     @Override

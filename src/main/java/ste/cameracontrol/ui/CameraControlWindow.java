@@ -40,10 +40,6 @@ public class CameraControlWindow extends BaseFrame {
 
     public static final String ICON_CAMERA_CONNECT    = "images/camera-connect-24x24.png";
     public static final String ICON_CAMERA_DISCONNECT = "images/camera-disconnect-24x24.png";
-    /**
-     * The camera controller
-     */
-    private CameraController controller;
 
     /** Creates new form CameraControlWindow */
     public CameraControlWindow() {
@@ -69,6 +65,7 @@ public class CameraControlWindow extends BaseFrame {
         menuEdit = new javax.swing.JMenu();
         menuCamera = new javax.swing.JMenu();
         shootMenuItem = new javax.swing.JMenuItem();
+        jMenuItem2 = new javax.swing.JMenuItem();
         menuHelp = new javax.swing.JMenu();
         aboutMenuItem = new javax.swing.JMenuItem();
         jMenuItem1 = new javax.swing.JMenuItem();
@@ -111,6 +108,14 @@ public class CameraControlWindow extends BaseFrame {
         });
         menuCamera.add(shootMenuItem);
 
+        jMenuItem2.setText("Refresh");
+        jMenuItem2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem2ActionPerformed(evt);
+            }
+        });
+        menuCamera.add(jMenuItem2);
+
         menuBar.add(menuCamera);
 
         menuHelp.setText("Help");
@@ -147,7 +152,7 @@ public class CameraControlWindow extends BaseFrame {
                 setStatus("Wait...");
                 Photo photos[] = null;
                 try {
-                    photos = controller.shootAndDownload();
+                    photos = CameraController.getInstance().shootAndDownload();
                 } catch (Exception e) {
                     error(e.getMessage(), e);
                     return null;
@@ -185,6 +190,10 @@ public class CameraControlWindow extends BaseFrame {
         }
     }//GEN-LAST:event_jMenuItem1ActionPerformed
 
+    private void jMenuItem2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem2ActionPerformed
+        CameraController.getInstance().shutdown();
+    }//GEN-LAST:event_jMenuItem2ActionPerformed
+
     /**
     * @param args the command line arguments
     */
@@ -200,6 +209,7 @@ public class CameraControlWindow extends BaseFrame {
     private javax.swing.JMenuItem aboutMenuItem;
     private javax.swing.JLabel connectionLabel;
     private javax.swing.JMenuItem jMenuItem1;
+    private javax.swing.JMenuItem jMenuItem2;
     private javax.swing.JMenuBar menuBar;
     private javax.swing.JMenu menuCamera;
     private javax.swing.JMenu menuEdit;
@@ -235,19 +245,5 @@ public class CameraControlWindow extends BaseFrame {
         }
         
         statusLabel.setText(StringUtils.abbreviateMiddle(status, "...", 50));
-    }
-    
-    /**
-     * @return the controller
-     */
-    public CameraController getController() {
-        return controller;
-    }
-
-    /**
-     * @param controller the controller to set
-     */
-    public void setController(CameraController controller) {
-        this.controller = controller;
     }
 }

@@ -79,7 +79,8 @@ public class CameraController implements Runnable {
      * Creates a new CameraController
      */
     protected CameraController() {
-        this(new Configuration());
+        listeners = new ArrayList<CameraListener>();
+        cameraMonitorActive = false;
     }
 
     /**
@@ -90,24 +91,8 @@ public class CameraController implements Runnable {
      * @throws  IllegalArgumentException if configuration is null
      */
     protected CameraController(Configuration configuration) {
-        if (configuration == null) {
-            throw new IllegalArgumentException("configuration cannot be null");
-        }
-        
-        this.configuration = configuration;
-        
-        reset();
-    }
-
-    /**
-     * Resets the current camera controller reinitializing all relevant instance
-     * data.
-     */
-    private void reset() {
-        connection = new CameraConnection();
-        listeners = new ArrayList<CameraListener>();
-        cameraMonitorActive = false;
-        checkCamera();
+        this();
+        initialize(configuration);
     }
 
     /**
@@ -119,6 +104,29 @@ public class CameraController implements Runnable {
         return instance;
     }
 
+    /**
+     * Initialize the controller with the given configuration
+     *
+     * @param configuration
+     */
+    public void initialize(Configuration configuration) {
+        if (configuration == null) {
+            throw new IllegalArgumentException("configuration cannot be null");
+        }
+
+        this.configuration = configuration;
+
+        cameraCleanup();
+        checkCamera();
+    }
+
+    /**
+     * initialize the controller with default configuration
+     */
+    public void initialize() {
+        initialize(new Configuration());
+    }
+
 
     /**
      * Returns the configuration object used by this CameraController
@@ -127,20 +135,6 @@ public class CameraController implements Runnable {
      */
     public Configuration getConfiguration() {
         return configuration;
-    }
-
-    /**
-     * Sets the configuration for the CameraController
-     *
-     * @param configuration the new Configuration object - NOT NULL
-     *
-     * @throws IllegalArgumentException in the case configuration is null
-     */
-    public void setConfiguration(Configuration configuration) {
-        if (configuration == null) {
-            throw new IllegalArgumentException("configuration cannot be null");
-        }
-        this.configuration = configuration;
     }
 
     /**
@@ -174,6 +168,7 @@ public class CameraController implements Runnable {
      * started).
      */
     public synchronized void startCameraMonitor() {
+        setConnected();
         if (!cameraMonitorActive) {
             new Thread(this).start();
         }
@@ -317,72 +312,6 @@ public class CameraController implements Runnable {
         }
     }
 
-
-
-
-    /**
-     * Runs the camera detecting monitor (required by Runnable)
-     */
-    @Override
-    public void run() {
-        cameraMonitorActive = true;
-        setConnected();
-        while (cameraMonitorActive) {
-            boolean cameraConnectedOld = cameraConnected;
-
-            checkCamera(); 
-            if (cameraConnectedOld != cameraConnected) {
-                setConnected();
-            }
-            
-            try {
-                Thread.sleep(POLLING_PERIOD);
-            } catch (Exception e) {
-                break;
-            }
-        }
-    }
-
-    // --------------------------------------------------------- Private methods
-
-    /**
-     * Used to set the connection status. Setting the connection status is
-     * considered a status change, therefore invokes the registered
-     * CameraListeners (if any).
-     *
-     * @param status the status of the connection: true if the camera is
-     *        connected false otherwise.
-     */
-    private synchronized void setConnected() {
-        if (listeners == null) {
-            return;
-        }
-
-        for(CameraListener listener: listeners) {
-            if (cameraConnected) {
-                listener.cameraConnected(camera);
-            } else {
-                listener.cameraDisconnected(camera);
-            }
-        }
-    }
-
-    private synchronized void checkCamera() {
-        UsbDevice dev = connection.findCamera();
-        
-        cameraConnected = (dev != null);
-
-        if (dev == null) {
-            cameraCleanup();
-        } else {
-            camera = USB.getDevice(
-                         dev.getDescriptor().getVendorId(),
-                         dev.getDescriptor().getProductId()
-                     );
-            cameraConnected = true;
-        }
-    }
-
     public void startCamera()
     throws PTPException {
         startCamera(true);
@@ -392,7 +321,7 @@ public class CameraController implements Runnable {
      * Starts the connection with the camera. If session is true, a new session
      * is established. If session is true, but a session has been already
      * established, a BusyException is thrown.
-     * 
+     *
      * @param session true if a new session should be established
      *
      * @return the communication endpoint
@@ -410,8 +339,10 @@ public class CameraController implements Runnable {
             //
             throw new PTPException("Camera not available");
         }
-        
-        device = new EosInitiator(camera);
+
+        if (device == null) {
+            device = new EosInitiator(camera);
+        }
 
         if (session) {
             device.openSession();
@@ -451,7 +382,77 @@ public class CameraController implements Runnable {
         }
     }
 
+
+
+    /**
+     * Runs the camera detecting monitor (required by Runnable)
+     */
+    @Override
+    public void run() {
+        cameraMonitorActive = true;
+
+        while (cameraMonitorActive) {
+            boolean cameraConnectedOld = cameraConnected;
+
+            checkCamera(); 
+            if (cameraConnectedOld != cameraConnected) {
+                setConnected();
+            }
+
+            try {
+                Thread.sleep(POLLING_PERIOD);
+            } catch (Exception e) {
+                break;
+            }
+        }
+    }
+
+    //
+    // SPIKE
+    //
+    public void shutdown() {
+        cameraCleanup();
+    }
+
     // --------------------------------------------------------- private methods
+
+    /**
+     * Used to set the connection status. Setting the connection status is
+     * considered a status change, therefore invokes the registered
+     * CameraListeners (if any).
+     *
+     * @param status the status of the connection: true if the camera is
+     *        connected false otherwise.
+     */
+    private synchronized void setConnected() {
+        if (listeners == null) {
+            return;
+        }
+
+        for(CameraListener listener: listeners) {
+            if (cameraConnected) {
+                listener.cameraConnected(camera);
+            } else {
+                listener.cameraDisconnected(camera);
+            }
+        }
+    }
+
+    private synchronized void checkCamera() {
+        UsbDevice dev = connection.findCamera();
+        
+        cameraConnected = (dev != null);
+
+        if (dev == null) {
+            cameraCleanup();
+        } else {
+            camera = USB.getDevice(
+                         dev.getDescriptor().getVendorId(),
+                         dev.getDescriptor().getProductId()
+                     );
+            cameraConnected = true;
+        }
+    }
 
     private void sanityCheck() throws PTPException {
         if (device == null) {
@@ -460,8 +461,16 @@ public class CameraController implements Runnable {
     }
 
     private void cameraCleanup() {
+        connection = new CameraConnection();
         camera = null;
         cameraConnected = false;
-        device = null;
+        if (device != null) {
+            try {
+                device.close();
+            } catch (Exception ignore) {
+            } finally {
+                device = null;
+            }
+        }
     }
 }
