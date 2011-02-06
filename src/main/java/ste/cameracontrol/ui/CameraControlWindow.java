@@ -87,15 +87,19 @@ public class CameraControlWindow extends BaseFrame {
 
         getContentPane().add(statusPanel, java.awt.BorderLayout.PAGE_END);
 
+        fileMenu.setMnemonic('F');
         fileMenu.setText("File");
         menu.add(fileMenu);
 
+        editMenu.setMnemonic('E');
         editMenu.setText("Edit");
         menu.add(editMenu);
 
+        cameraMenu.setMnemonic('C');
         cameraMenu.setText("Camera");
 
         shootMenuItem.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S, java.awt.event.InputEvent.ALT_MASK));
+        shootMenuItem.setMnemonic('S');
         shootMenuItem.setText("Shoot");
         shootMenuItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -106,13 +110,15 @@ public class CameraControlWindow extends BaseFrame {
 
         menu.add(cameraMenu);
 
+        helpMenu.setMnemonic('H');
         helpMenu.setText("Help");
 
         aboutMenuItem.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_A, java.awt.event.InputEvent.ALT_MASK));
+        aboutMenuItem.setMnemonic('A');
         aboutMenuItem.setText("About");
         aboutMenuItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                aboutMenuItemActionPerformed(evt);
+                aboutMenuItemActionPerformed1(evt);
             }
         });
         helpMenu.add(aboutMenuItem);
@@ -171,6 +177,10 @@ public class CameraControlWindow extends BaseFrame {
 
     private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem1ActionPerformed
     }//GEN-LAST:event_jMenuItem1ActionPerformed
+
+    private void aboutMenuItemActionPerformed1(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_aboutMenuItemActionPerformed1
+        new AboutDialog(this, true).setVisible(true);
+    }//GEN-LAST:event_aboutMenuItemActionPerformed1
 
     /**
     * @param args the command line arguments
