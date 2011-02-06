@@ -22,9 +22,6 @@
 
 package ste.cameracontrol.ui;
 
-import java.awt.image.BufferedImage;
-import java.io.IOException;
-import javax.imageio.ImageIO;
 import javax.swing.SwingWorker;
 
 import org.apache.commons.lang.StringUtils;
@@ -60,13 +57,12 @@ public class CameraControlWindow extends BaseFrame {
         statusPanel = new javax.swing.JPanel();
         connectionLabel = new javax.swing.JLabel();
         statusLabel = new javax.swing.JLabel();
-        menuBar = new javax.swing.JMenuBar();
-        menuFile = new javax.swing.JMenu();
-        menuEdit = new javax.swing.JMenu();
-        menuCamera = new javax.swing.JMenu();
+        menu = new javax.swing.JMenuBar();
+        fileMenu = new javax.swing.JMenu();
+        editMenu = new javax.swing.JMenu();
+        cameraMenu = new javax.swing.JMenu();
         shootMenuItem = new javax.swing.JMenuItem();
-        jMenuItem2 = new javax.swing.JMenuItem();
-        menuHelp = new javax.swing.JMenu();
+        helpMenu = new javax.swing.JMenu();
         aboutMenuItem = new javax.swing.JMenuItem();
         jMenuItem1 = new javax.swing.JMenuItem();
 
@@ -91,13 +87,13 @@ public class CameraControlWindow extends BaseFrame {
 
         getContentPane().add(statusPanel, java.awt.BorderLayout.PAGE_END);
 
-        menuFile.setText("File");
-        menuBar.add(menuFile);
+        fileMenu.setText("File");
+        menu.add(fileMenu);
 
-        menuEdit.setText("Edit");
-        menuBar.add(menuEdit);
+        editMenu.setText("Edit");
+        menu.add(editMenu);
 
-        menuCamera.setText("Camera");
+        cameraMenu.setText("Camera");
 
         shootMenuItem.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S, java.awt.event.InputEvent.ALT_MASK));
         shootMenuItem.setText("Shoot");
@@ -106,19 +102,11 @@ public class CameraControlWindow extends BaseFrame {
                 shootMenuItemActionPerformed(evt);
             }
         });
-        menuCamera.add(shootMenuItem);
+        cameraMenu.add(shootMenuItem);
 
-        jMenuItem2.setText("Refresh");
-        jMenuItem2.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jMenuItem2ActionPerformed(evt);
-            }
-        });
-        menuCamera.add(jMenuItem2);
+        menu.add(cameraMenu);
 
-        menuBar.add(menuCamera);
-
-        menuHelp.setText("Help");
+        helpMenu.setText("Help");
 
         aboutMenuItem.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_A, java.awt.event.InputEvent.ALT_MASK));
         aboutMenuItem.setText("About");
@@ -127,7 +115,7 @@ public class CameraControlWindow extends BaseFrame {
                 aboutMenuItemActionPerformed(evt);
             }
         });
-        menuHelp.add(aboutMenuItem);
+        helpMenu.add(aboutMenuItem);
 
         jMenuItem1.setText("jMenuItem1");
         jMenuItem1.addActionListener(new java.awt.event.ActionListener() {
@@ -135,11 +123,11 @@ public class CameraControlWindow extends BaseFrame {
                 jMenuItem1ActionPerformed(evt);
             }
         });
-        menuHelp.add(jMenuItem1);
+        helpMenu.add(jMenuItem1);
 
-        menuBar.add(menuHelp);
+        menu.add(helpMenu);
 
-        setJMenuBar(menuBar);
+        setJMenuBar(menu);
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
@@ -182,17 +170,7 @@ public class CameraControlWindow extends BaseFrame {
     }//GEN-LAST:event_aboutMenuItemActionPerformed
 
     private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem1ActionPerformed
-        try {
-            BufferedImage img = ImageIO.read(ClassLoader.getSystemResourceAsStream("images/about.png"));
-            new ImageFrame(img).setVisible(true);
-        } catch (IOException e) {
-            error(e.getMessage(), e);;
-        }
     }//GEN-LAST:event_jMenuItem1ActionPerformed
-
-    private void jMenuItem2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem2ActionPerformed
-        CameraController.getInstance().shutdown();
-    }//GEN-LAST:event_jMenuItem2ActionPerformed
 
     /**
     * @param args the command line arguments
@@ -207,14 +185,13 @@ public class CameraControlWindow extends BaseFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JMenuItem aboutMenuItem;
+    private javax.swing.JMenu cameraMenu;
     private javax.swing.JLabel connectionLabel;
+    private javax.swing.JMenu editMenu;
+    private javax.swing.JMenu fileMenu;
+    private javax.swing.JMenu helpMenu;
     private javax.swing.JMenuItem jMenuItem1;
-    private javax.swing.JMenuItem jMenuItem2;
-    private javax.swing.JMenuBar menuBar;
-    private javax.swing.JMenu menuCamera;
-    private javax.swing.JMenu menuEdit;
-    private javax.swing.JMenu menuFile;
-    private javax.swing.JMenu menuHelp;
+    private javax.swing.JMenuBar menu;
     private javax.swing.JMenuItem shootMenuItem;
     private javax.swing.JLabel statusLabel;
     private javax.swing.JPanel statusPanel;
@@ -245,5 +222,13 @@ public class CameraControlWindow extends BaseFrame {
         }
         
         statusLabel.setText(StringUtils.abbreviateMiddle(status, "...", 50));
+    }
+
+    public void enableCameraControls() {
+        shootMenuItem.setEnabled(true);
+    }
+
+    public void disableCameraControls() {
+        shootMenuItem.setEnabled(false);
     }
 }

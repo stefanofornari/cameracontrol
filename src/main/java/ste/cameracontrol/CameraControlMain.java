@@ -83,6 +83,7 @@ public class CameraControlMain implements CameraListener {
             try {
                 CameraController.getInstance().startCamera();
                 cameraName = device.getDisplayName();
+                window.enableCameraControls();
                 break;
             } catch (PTPBusyException e) {
                 try { Thread.sleep(2000); } catch (Exception ignore) {}
@@ -98,6 +99,7 @@ public class CameraControlMain implements CameraListener {
     @Override
     public void cameraDisconnected(Device device) {
         window.setConnectionStatus(null);
+        window.disableCameraControls();
     }
 
     // -------------------------------------------------------------------- main

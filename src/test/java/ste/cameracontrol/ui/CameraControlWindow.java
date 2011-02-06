@@ -31,6 +31,7 @@ import ste.cameracontrol.CameraController;
  */
 public class CameraControlWindow {
     public String status;
+    public boolean cameraControlsEnabled;
 
     public CameraControlWindow() {
     }
@@ -47,6 +48,14 @@ public class CameraControlWindow {
     public void error(String msg, Throwable t) {
         System.out.println(msg);
         t.printStackTrace();
+    }
+
+    public void enableCameraControls() {
+        cameraControlsEnabled = true;
+    }
+
+    public void disableCameraControls() {
+        cameraControlsEnabled = false;
     }
 
 }

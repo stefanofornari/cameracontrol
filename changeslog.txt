@@ -1,3 +1,7 @@
+20100206
+- completed US6 Disable commands when camera not attached
+20110205
+- completed US13 and US17
 20110128
 - completed US5 Shoot and view
 20110129
