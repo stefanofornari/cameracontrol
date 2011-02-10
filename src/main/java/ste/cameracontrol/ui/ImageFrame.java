@@ -57,7 +57,7 @@ public class ImageFrame extends BaseFrame {
     /** Creates new ImageFrame */
     public ImageFrame(Photo photo) {
         this.photo = photo;
-        initCustomComponents(photo.getImage());
+        initCustomComponents(photo.getJpegImage());
         setTitle(photo.getName());
     }
 
@@ -70,7 +70,9 @@ public class ImageFrame extends BaseFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        imagesTabbedPane = new javax.swing.JTabbedPane();
         scrollPane = new javax.swing.JScrollPane(imagePanel);
+        jScrollPane1 = new javax.swing.JScrollPane();
         bottomPanel = new javax.swing.JPanel();
         buttonsPanel = new javax.swing.JPanel();
         saveButton = new javax.swing.JButton();
@@ -83,14 +85,20 @@ public class ImageFrame extends BaseFrame {
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setIconImage(getImage(ICON_CAMERACONTROL));
 
+        imagesTabbedPane.setTabPlacement(javax.swing.JTabbedPane.BOTTOM);
+        imagesTabbedPane.setFont(new java.awt.Font("Arial", 0, 10)); // NOI18N
+
         scrollPane.setName("scrollpane"); // NOI18N
-        getContentPane().add(scrollPane, java.awt.BorderLayout.CENTER);
+        imagesTabbedPane.addTab("JPG", scrollPane);
+        imagesTabbedPane.addTab("RAW", jScrollPane1);
+
+        getContentPane().add(imagesTabbedPane, java.awt.BorderLayout.CENTER);
 
         bottomPanel.setLayout(new javax.swing.BoxLayout(bottomPanel, javax.swing.BoxLayout.LINE_AXIS));
 
         buttonsPanel.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEADING, 0, 3));
 
-        saveButton.setFont(new java.awt.Font("Arial", 0, 10)); // NOI18N
+        saveButton.setFont(new java.awt.Font("Arial", 0, 10));
         saveButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/image-not-saved-16x16.png"))); // NOI18N
         saveButton.setText("Save");
         saveButton.setMaximumSize(new java.awt.Dimension(56, 20));
@@ -262,7 +270,9 @@ public class ImageFrame extends BaseFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel bottomPanel;
     private javax.swing.JPanel buttonsPanel;
+    private javax.swing.JTabbedPane imagesTabbedPane;
     private javax.swing.JPanel jPanel1;
+    private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JButton saveButton;
     private javax.swing.JScrollPane scrollPane;
     private javax.swing.JButton zoom100Button;

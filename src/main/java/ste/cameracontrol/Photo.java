@@ -34,7 +34,8 @@ import javax.imageio.ImageIO;
  */
 public class Photo {
     private String name;
-    private byte[] data;
+    private byte[] jpegData;
+    private byte[] rawData;
 
     /**
      * Creates a Photo object given the name and data
@@ -44,34 +45,49 @@ public class Photo {
      *
      * @throws IllegalArgumentException if name is null or empty
      */
-    public Photo(String name, byte[] data) {
+    public Photo(String name) {
         if ((name == null) || (name.length() == 0)) {
             throw new IllegalArgumentException("name cannot be null or empty");
         }
         this.name = name;
-        this.data = data;
-    }
-
-    public Photo(String name) {
-        this(name, null);
     }
     
     public String getName() {
         return name;
     }
 
-    public byte[] getRawData() {
-        return data;
+    public byte[] getJpegData() {
+        return jpegData;
     }
 
-    public BufferedImage getImage() {
-        if (data == null) {
+    public void setJpegData(byte[] data) {
+        if ((data == null) || (data.length == 0)) {
+            throw new IllegalArgumentException("data cannot be null or empty");
+        }
+
+        this.jpegData = data;
+    }
+
+    public void setRawData(byte[] data) {
+        if ((data == null) || (data.length == 0)) {
+            throw new IllegalArgumentException("data cannot be null or empty");
+        }
+
+        this.rawData = data;
+    }
+
+    public byte[] getRawData() {
+        return rawData;
+    }
+
+    public BufferedImage getJpegImage() {
+        if (jpegData == null) {
             return null;
         }
 
         BufferedImage ret = null;
         try {
-            ret = ImageIO.read(new ByteArrayInputStream(data));
+            ret = ImageIO.read(new ByteArrayInputStream(jpegData));
         } catch (IOException e) {
             //
             // Do nothing, ret will be null

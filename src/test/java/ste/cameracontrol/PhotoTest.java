@@ -33,14 +33,7 @@ public class PhotoTest extends TestCase {
         Photo p = new Photo("name");
         assertEquals("name", p.getName());
         assertNull(p.getRawData());
-        
-        p = new Photo("name", new byte[0]);
-        assertEquals("name", p.getName());
-        assertNotNull(p.getRawData());
-
-        p = new Photo("name", new byte[] {64});
-        assertEquals("name", p.getName());
-        assertEquals(64, p.getRawData()[0]);
+        assertNull(p.getJpegData());
     }
 
     public void testConstructorsKO() {
@@ -63,21 +56,85 @@ public class PhotoTest extends TestCase {
         }
     }
 
+    public void testSetJpegData() throws Exception {
+        Photo  p = new Photo("name");
+
+        try {
+            p.setJpegData(null);
+            fail("data cannot be null");
+        } catch (IllegalArgumentException e) {
+            //
+            // Ok
+            //
+        }
+
+        try {
+            p.setJpegData(new byte[0]);
+            fail("data cannot be empty");
+        } catch (IllegalArgumentException e) {
+            //
+            // Ok
+            //
+        }
+
+        p.setJpegData(new byte[] {64});
+        assertEquals(64, p.getJpegData()[0]);
+    }
+
+    public void testSetRawData() throws Exception {
+        Photo  p = new Photo("name");
+
+        try {
+            p.setRawData(null);
+            fail("data cannot be null");
+        } catch (IllegalArgumentException e) {
+            //
+            // Ok
+            //
+        }
+
+        try {
+            p.setRawData(new byte[0]);
+            fail("data cannot be empty");
+        } catch (IllegalArgumentException e) {
+            //
+            // Ok
+            //
+        }
+
+        p.setRawData(new byte[] {32});
+        assertEquals(32, p.getRawData()[0]);
+    }
+
+    public void testSetJpegAndRawData() {
+        Photo  p = new Photo("name");
+        p.setJpegData(new byte[] {64});
+        p.setRawData(new byte[] {32});
+        assertEquals(64, p.getJpegData()[0]);
+        assertEquals(32, p.getRawData()[0]);
+    }
+
+    /**
+     * We do test with JPEG only for now... I do not know how to generate a
+     * small RAW file... :(
+     *
+     * @throws Exception
+     */
     public void testGetImage() throws Exception {
         byte[] data = IOUtils.toByteArray(
                           ClassLoader.getSystemResourceAsStream("images/camera-connect-24x24.png")
                       );
 
-        Photo photo = new Photo("camera-connect-24x24.png");
+        Photo photo = new Photo("camera-connect-24x24");
 
-        assertNull(photo.getImage());
+        assertNull(photo.getJpegImage());
         
-        photo = new Photo("camera-connect-24x24.png", data);
+        photo = new Photo("camera-connect-24x24");
+        photo.setJpegData(data);
 
-        BufferedImage image = photo.getImage();
+        BufferedImage image = photo.getJpegImage();
 
         assertEquals(24, image.getWidth());
         assertEquals(24, image.getHeight());
     }
-
 }

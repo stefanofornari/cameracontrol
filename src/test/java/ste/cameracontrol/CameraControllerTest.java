@@ -325,7 +325,8 @@ public class CameraControllerTest
 
     public void testSavePhoto() throws Exception {
         byte[] data = IOUtils.toByteArray(ClassLoader.getSystemResourceAsStream("images/about.png"));
-        Photo photo = new Photo(IMAGE_NAME_JPG, data);
+        Photo photo = new Photo(IMAGE_NAME_JPG);
+        photo.setJpegData(data);
 
         CONTROLLER.savePhoto(photo);
 

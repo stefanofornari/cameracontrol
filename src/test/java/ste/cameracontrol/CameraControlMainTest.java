@@ -26,7 +26,6 @@ import ch.ntb.usb.LibusbJava;
 import ch.ntb.usb.devinf.CanonEOS1000D;
 import java.io.File;
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import junit.framework.TestCase;
 
 import ste.cameracontrol.ui.CameraControlWindow;

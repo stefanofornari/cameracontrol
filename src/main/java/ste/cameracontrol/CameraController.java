@@ -302,7 +302,9 @@ public class CameraController implements Runnable {
             device.getPartialObject(id, 0, size, data);
             device.transferComplete(id);
 
-            return new Photo(fileName, buf.toByteArray());
+            Photo p = new Photo(fileName);
+            p.setJpegData(buf.toByteArray());
+            return p;
         } catch (Exception e) {
             throw new PTPException("Unable to store the object: " + e.getMessage(), e);
         } finally {
@@ -370,7 +372,7 @@ public class CameraController implements Runnable {
         FileOutputStream fos = null;
         try {
             fos = new FileOutputStream(f);
-            fos.write(photo.getRawData());
+            fos.write(photo.getJpegData());
         } finally {
             if (fos != null) {
                 try {

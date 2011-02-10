@@ -23,9 +23,11 @@ package ste.ptp.eos;
 
 import java.util.ArrayList;
 import ch.ntb.usb.Device;
+import java.io.IOException;
 import java.util.List;
 import ste.ptp.Data;
 import ste.ptp.NameFactory;
+import ste.ptp.OutputStreamData;
 import ste.ptp.PTPException;
 import ste.ptp.Response;
 
@@ -80,8 +82,15 @@ public class EosInitiator extends NameFactory {
         return "error";
     }
 
-    public void getPartialObject(int oid, int offset, int size, Data data) {
+    public void getPartialObject(int oid, int offset, int size, Data data)
+    throws PTPException {
         invoked.add("getPartialObject");
+        OutputStreamData out = (OutputStreamData) data;
+        try {
+            out.write(new byte[] {64}, 0, 1);
+        } catch (IOException e) {
+            throw new PTPException(e.getMessage());
+        }
     }
 
     public void transferComplete(int oid) {
