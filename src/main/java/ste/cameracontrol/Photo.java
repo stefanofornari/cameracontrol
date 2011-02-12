@@ -97,4 +97,19 @@ public class Photo {
 
         return ret;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if ((o == null) || !(o instanceof Photo)) {
+            return false;
+        }
+
+        Photo p = (Photo)o;
+        return getName().equals(p.getName());
+    }
+
+    @Override
+    public int hashCode() {
+        return name.hashCode();
+    }
 }

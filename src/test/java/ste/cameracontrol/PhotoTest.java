@@ -56,6 +56,26 @@ public class PhotoTest extends TestCase {
         }
     }
 
+    public void testEquals() {
+        Photo p1 = new Photo("one");
+        Photo p2 = new Photo("two");
+        Photo p3 = new Photo("one");
+
+        assertFalse(p1.equals(null));
+        assertTrue(p1.equals(p1));
+        assertFalse(p1.equals(new Object()));
+        assertFalse(p1.equals(p2));
+        assertTrue(p1.equals(p3));
+        assertTrue(p3.equals(p1));
+    }
+
+    public void testHashCode() {
+        final String NAME = "name";
+
+        Photo p = new Photo(NAME);
+        assertEquals(NAME.hashCode(), p.hashCode());
+    }
+
     public void testSetJpegData() throws Exception {
         Photo  p = new Photo("name");
 
