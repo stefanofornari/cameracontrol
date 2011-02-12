@@ -43,8 +43,9 @@ public class CameraControllerTest
         extends TestCase {
 
     public final String IMAGE_DIR      = "/tmp/cameracontrol";
-    public final String IMAGE_NAME_JPG = "capture.jpg";
-    public final String IMAGE_NAME_CR2 = "capture.cr2";
+    public final String IMAGE_NAME     = "capture";
+    public final String IMAGE_NAME_JPG = IMAGE_NAME + ".jpg";
+    public final String IMAGE_NAME_CR2 = IMAGE_NAME + ".cr2";
     
     private CameraController CONTROLLER = null;
     private Configuration    CONFIG     = null;
@@ -290,19 +291,20 @@ public class CameraControllerTest
         }
     }
 
-    public void testDownloadObject() throws Exception {
+    public void testDownloadPhoto() throws Exception {
         CONTROLLER.startCamera();
 
-        Photo photo = CONTROLLER.downloadPhoto(1, 256, IMAGE_NAME_JPG);
+        Photo photo = new Photo(IMAGE_NAME);
+        CONTROLLER.downloadPhoto(1, 256, photo, false);
 
         assertTrue(EosInitiator.invoked.contains("getPartialObject"));
         assertTrue(EosInitiator.invoked.contains("transferComplete"));
 
         assertNotNull(photo);
-        assertEquals(IMAGE_NAME_JPG, photo.getName());
+        assertEquals(IMAGE_NAME, photo.getName());
     }
 
-    public void testShootAndCapture() throws Exception {
+    public void testShootAndSave() throws Exception {
         EosEvent photo1 = new EosEvent();
         EosEvent photo2 = new EosEvent();
 
@@ -318,9 +320,10 @@ public class CameraControllerTest
         Photo[] photos = CONTROLLER.shootAndDownload();
 
         assertTrue(EosInitiator.invoked.contains("initiateCapture"));
-        assertEquals(2, photos.length);
-        assertEquals(IMAGE_NAME_JPG, photos[0].getName());
-        assertEquals(IMAGE_NAME_CR2, photos[1].getName());
+        assertEquals(1, photos.length);
+        assertEquals(IMAGE_NAME, photos[0].getName());
+        assertNotNull(photos[0].getJpegData());
+        assertNotNull(photos[0].getRawData());
     }
 
     public void testSavePhoto() throws Exception {

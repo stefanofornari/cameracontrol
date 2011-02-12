@@ -33,6 +33,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.io.FilenameUtils;
 
 import ste.ptp.DeviceInfo;
 import ste.ptp.OutputStreamData;
@@ -270,41 +274,64 @@ public class CameraController implements Runnable {
             }
         }
 
-        Photo[] ret = new Photo[objects.size()];
-        int i = 0;
+        Set<Photo> photos = new HashSet<Photo>();
+        Photo photo = null;
         for (EosEvent e: objects) {
-            ret[i++] = downloadPhoto(e.getIntParam(1), e.getIntParam(5), e.getStringParam(6));
+            String name = FilenameUtils.getBaseName(e.getStringParam(6));
+            for (Photo p: photos) {
+                if (p.getName().equals(name)) {
+                    photo  = p;
+                    break;
+                }
+            }
+
+            if (photo == null) {
+                photo = new Photo(name);
+            }
+
+            downloadPhoto(
+                e.getIntParam(1),
+                e.getIntParam(5),
+                photo,
+                !StringUtils.endsWithIgnoreCase(e.getStringParam(6), ".jpg")
+            );
+            photos.add(photo);
         }
 
-        return ret;
+        return photos.toArray(new Photo[photos.size()]);
     }
 
     /**
-     * Downloads a photo from the camera given its id, size and file name
+     * Downloads a photo from the camera given its id, size and Photo object.
+     * The photo object is loaded on the jpeg or raw data buffer based on the
+     * value of the raw parameter.
      *
-     * @param id
-     * @param size
-     * @param fileName
+     * @param id object id on the camera
+     * @param size size of the object
+     * @param photo Photo object where to load the item
+     * @param raw is the object the raw image (true) or jpeg(false)?
      *
      * @return an Photo object with the downloaded photo
      *
      * @throws PTPException in case of communication or protocol errors
      */
-    public Photo downloadPhoto(int id, int size, String fileName)
+    public void downloadPhoto(int id, int size, Photo photo, boolean raw)
     throws PTPException {
         sanityCheck();
-        
+
         FileOutputStream file = null;
         try {
             ByteArrayOutputStream buf = new ByteArrayOutputStream(size);
-            OutputStreamData data = 
+            OutputStreamData data =
                 new OutputStreamData(buf, device);
             device.getPartialObject(id, 0, size, data);
             device.transferComplete(id);
 
-            Photo p = new Photo(fileName);
-            p.setJpegData(buf.toByteArray());
-            return p;
+            if (raw) {
+                photo.setJpegData(buf.toByteArray());
+            } else {
+                photo.setRawData(buf.toByteArray());
+            }
         } catch (Exception e) {
             throw new PTPException("Unable to store the object: " + e.getMessage(), e);
         } finally {
