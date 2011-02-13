@@ -22,6 +22,10 @@
 
 package ste.cameracontrol.ui;
 
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import javax.imageio.ImageIO;
 import javax.swing.SwingWorker;
 
 import org.apache.commons.lang.StringUtils;
@@ -176,6 +180,21 @@ public class CameraControlWindow extends BaseFrame {
     }//GEN-LAST:event_aboutMenuItemActionPerformed
 
     private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem1ActionPerformed
+        Photo photo = new Photo("demo");
+        
+        try {
+            BufferedImage image = ImageIO.read(ClassLoader.getSystemResourceAsStream("images/about.png"));
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            ImageIO.write(image, "JPEG", out);
+            photo.setJpegData(out.toByteArray());
+            photo.setRawData(new byte[] {0});
+        } catch (IOException e) {
+            //
+            // There is nothing we can do about it
+            //
+            e.printStackTrace();
+        }
+        new ImageFrame(photo).setVisible(true);
     }//GEN-LAST:event_jMenuItem1ActionPerformed
 
     private void aboutMenuItemActionPerformed1(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_aboutMenuItemActionPerformed1

@@ -24,6 +24,7 @@ package ste.cameracontrol.ui;
 import java.awt.Image;
 import java.awt.event.ComponentAdapter;
 import java.io.IOException;
+import javax.swing.JLabel;
 import ste.cameracontrol.CameraController;
 
 import ste.cameracontrol.Photo;
@@ -45,19 +46,15 @@ public class ImageFrame extends BaseFrame {
     public static final String ZOOM_FIT_VALUE = "Fit";
     public static final String ZOOM_ORIGINAL_VALUE = "100%";
 
-    private ImagePanel imagePanel;
+    private ImagePanel jpegPanel;
+    private ImagePanel rawPanel;
 
     private Photo photo;
 
     /** Creates new ImageFrame */
-    public ImageFrame(Image image) {
-        initCustomComponents(image);
-    }
-
-    /** Creates new ImageFrame */
     public ImageFrame(Photo photo) {
         this.photo = photo;
-        initCustomComponents(photo.getJpegImage());
+        initCustomComponents();
         setTitle(photo.getName());
     }
 
@@ -71,8 +68,8 @@ public class ImageFrame extends BaseFrame {
     private void initComponents() {
 
         imagesTabbedPane = new javax.swing.JTabbedPane();
-        scrollPane = new javax.swing.JScrollPane(imagePanel);
-        jScrollPane1 = new javax.swing.JScrollPane();
+        scrollPaneJpeg = new javax.swing.JScrollPane(jpegPanel);
+        scrollPaneRaw = new javax.swing.JScrollPane(rawPanel);
         bottomPanel = new javax.swing.JPanel();
         buttonsPanel = new javax.swing.JPanel();
         saveButton = new javax.swing.JButton();
@@ -86,11 +83,13 @@ public class ImageFrame extends BaseFrame {
         setIconImage(getImage(ICON_CAMERACONTROL));
 
         imagesTabbedPane.setTabPlacement(javax.swing.JTabbedPane.BOTTOM);
-        imagesTabbedPane.setFont(new java.awt.Font("Arial", 0, 10)); // NOI18N
+        imagesTabbedPane.setFont(new java.awt.Font("Arial", 0, 10));
 
-        scrollPane.setName("scrollpane"); // NOI18N
-        imagesTabbedPane.addTab("JPG", scrollPane);
-        imagesTabbedPane.addTab("RAW", jScrollPane1);
+        scrollPaneJpeg.setName("scrollpane"); // NOI18N
+        imagesTabbedPane.addTab("JPEG", scrollPaneJpeg);
+
+        scrollPaneRaw.setName("scrollpane"); // NOI18N
+        imagesTabbedPane.addTab("RAW", scrollPaneRaw);
 
         getContentPane().add(imagesTabbedPane, java.awt.BorderLayout.CENTER);
 
@@ -152,7 +151,7 @@ public class ImageFrame extends BaseFrame {
         jPanel1.add(zoomScrollbar);
 
         zoomValueBox.setEditable(true);
-        zoomValueBox.setFont(new java.awt.Font("Arial", 0, 10)); // NOI18N
+        zoomValueBox.setFont(new java.awt.Font("Arial", 0, 10));
         zoomValueBox.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
         zoomValueBox.setMaximumSize(new java.awt.Dimension(75, 19));
         zoomValueBox.setMinimumSize(new java.awt.Dimension(75, 19));
@@ -179,8 +178,8 @@ public class ImageFrame extends BaseFrame {
      */
     private void setZoomValue(double zoom) {
         zoomValueBox.setSelectedItem(((int)zoom) + "%");
-        imagePanel.setScale(zoom / 100);
-        imagePanel.revalidate();
+        jpegPanel.setScale(zoom / 100);
+        jpegPanel.revalidate();
         zoomScrollbar.setValue((int)zoom);
     }
 
@@ -191,17 +190,17 @@ public class ImageFrame extends BaseFrame {
 
         double zoom = 100;
         if (ZOOM_FIT_VALUE.equals(zoomValue)) {
-            Image img = imagePanel.getImage();
+            Image img = jpegPanel.getImage();
 
             int width = img.getWidth(null)+2;
             int height = img.getHeight(null)+2;
 
             double zoomW = 100, zoomH = 100;
-            if (width > scrollPane.getWidth()) {
-                zoomW = (int)((double)scrollPane.getWidth()/(double)width*100);
+            if (width > scrollPaneJpeg.getWidth()) {
+                zoomW = (int)((double)scrollPaneJpeg.getWidth()/(double)width*100);
             }
-            if (height > scrollPane.getHeight()) {
-                zoomH = (int)((double)scrollPane.getHeight()/(double)height*100);
+            if (height > scrollPaneJpeg.getHeight()) {
+                zoomH = (int)((double)scrollPaneJpeg.getHeight()/(double)height*100);
             }
             zoom = Math.min(zoomW, zoomH);
         } else {
@@ -244,11 +243,33 @@ public class ImageFrame extends BaseFrame {
         }
     }//GEN-LAST:event_saveButtonActionPerformed
 
-    private void initCustomComponents(Image image) {
-        imagePanel = new ImagePanel();
-        imagePanel.setImage(image);
+    private void initCustomComponents() {
+        jpegPanel = new ImagePanel();
+        rawPanel = new ImagePanel();
+
         initComponents();
-        scrollPane.addComponentListener(
+
+        //
+        // We set the tabs based on which images are available. If the JPEG
+        // image is available, it takes the first tab and it is displayed by
+        // default.
+        //
+        if (photo.hasJpeg()) {
+            jpegPanel.setImage(photo.getJpegImage());
+        } else {
+            imagesTabbedPane.removeTabAt(0);
+        }
+
+
+        if (photo.hasRaw()) {
+            rawPanel.setImage(photo.getRawImage());
+        } else {
+            imagesTabbedPane.removeTabAt(1);
+        }
+
+        pack();
+
+        scrollPaneJpeg.addComponentListener(
             new ComponentAdapter() {
                 public void componentResized(java.awt.event.ComponentEvent evt) {
                     //
@@ -260,7 +281,7 @@ public class ImageFrame extends BaseFrame {
                     // more.
                     //
                     setZoomValue(ZOOM_FIT_VALUE);
-                    scrollPane.removeComponentListener(this);
+                    scrollPaneJpeg.removeComponentListener(this);
                 }
             }
         );
@@ -272,9 +293,9 @@ public class ImageFrame extends BaseFrame {
     private javax.swing.JPanel buttonsPanel;
     private javax.swing.JTabbedPane imagesTabbedPane;
     private javax.swing.JPanel jPanel1;
-    private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JButton saveButton;
-    private javax.swing.JScrollPane scrollPane;
+    private javax.swing.JScrollPane scrollPaneJpeg;
+    private javax.swing.JScrollPane scrollPaneRaw;
     private javax.swing.JButton zoom100Button;
     private javax.swing.JButton zoomFitButton;
     private javax.swing.JScrollBar zoomScrollbar;

@@ -22,6 +22,7 @@
 
 package ste.cameracontrol;
 
+import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -97,6 +98,37 @@ public class Photo {
 
         return ret;
     }
+
+    public BufferedImage getRawImage() {
+        if (rawData == null) {
+            return null;
+        }
+
+        BufferedImage ret = new BufferedImage(100, 50, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2 = ret.createGraphics();
+        g2.drawString("RAW image display not yet supported", 25, 25);
+
+        return ret;
+    }
+    
+    /**
+     * Does this Photo contain the jpeg image?
+     * 
+     * @return true if the Photo contains the jpeg image, false otherwise
+     */
+    public boolean hasJpeg() {
+        return (jpegData != null);
+    }
+
+    /**
+     * Does this Photo contain the raw image?
+     *
+     * @return true if the Photo contains the raw image, false otherwise
+     */
+    public boolean hasRaw() {
+        return (rawData != null);
+    }
+
 
     @Override
     public boolean equals(Object o) {

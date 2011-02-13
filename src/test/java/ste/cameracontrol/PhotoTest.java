@@ -134,6 +134,21 @@ public class PhotoTest extends TestCase {
         assertEquals(32, p.getRawData()[0]);
     }
 
+    public void testHasImages() {
+        Photo p = new Photo("name");
+
+        assertFalse(p.hasJpeg());
+        assertFalse(p.hasRaw());
+
+        p.setJpegData(new byte[] {64});
+        assertTrue(p.hasJpeg());
+        assertFalse(p.hasRaw());
+
+        p.setRawData(new byte[] {32});
+        assertTrue(p.hasJpeg());
+        assertTrue(p.hasRaw());
+    }
+
     /**
      * We do test with JPEG only for now... I do not know how to generate a
      * small RAW file... :(
@@ -151,8 +166,18 @@ public class PhotoTest extends TestCase {
         
         photo = new Photo("camera-connect-24x24");
         photo.setJpegData(data);
+        //
+        // RAW data do not really matter, since for now RAW image display is
+        // not yet supported
+        //
+        photo.setRawData(new byte[] {64});
 
         BufferedImage image = photo.getJpegImage();
+
+        assertEquals(24, image.getWidth());
+        assertEquals(24, image.getHeight());
+
+        image = photo.getJpegImage();
 
         assertEquals(24, image.getWidth());
         assertEquals(24, image.getHeight());
