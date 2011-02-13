@@ -24,7 +24,6 @@ package ste.cameracontrol.ui;
 import java.awt.Image;
 import java.awt.event.ComponentAdapter;
 import java.io.IOException;
-import javax.swing.JLabel;
 import ste.cameracontrol.CameraController;
 
 import ste.cameracontrol.Photo;
