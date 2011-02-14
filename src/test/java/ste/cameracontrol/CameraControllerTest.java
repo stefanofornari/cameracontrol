@@ -44,8 +44,8 @@ public class CameraControllerTest
 
     public final String IMAGE_DIR      = "/tmp/cameracontrol";
     public final String IMAGE_NAME     = "capture";
-    public final String IMAGE_NAME_JPG = IMAGE_NAME + ".jpg";
-    public final String IMAGE_NAME_CR2 = IMAGE_NAME + ".cr2";
+    public final String IMAGE_NAME_JPG = IMAGE_NAME + ".JPG";
+    public final String IMAGE_NAME_CR2 = IMAGE_NAME + ".CR2";
     
     private CameraController CONTROLLER = null;
     private Configuration    CONFIG     = null;
@@ -90,6 +90,7 @@ public class CameraControllerTest
         CONTROLLER.initialize(CONFIG);
 
         new File(IMAGE_DIR, IMAGE_NAME_JPG).delete();
+        new File(IMAGE_DIR, IMAGE_NAME_CR2).delete();
     }
 
     @Override
@@ -302,6 +303,11 @@ public class CameraControllerTest
 
         assertNotNull(photo);
         assertEquals(IMAGE_NAME, photo.getName());
+        assertTrue(photo.hasJpeg());
+        assertFalse(photo.hasRaw());
+
+        CONTROLLER.downloadPhoto(1, 256, photo, true);
+        assertTrue(photo.hasRaw());
     }
 
     public void testShootAndSave() throws Exception {
@@ -327,15 +333,26 @@ public class CameraControllerTest
     }
 
     public void testSavePhoto() throws Exception {
-        byte[] data = IOUtils.toByteArray(ClassLoader.getSystemResourceAsStream("images/about.png"));
-        Photo photo = new Photo(IMAGE_NAME_JPG);
-        photo.setJpegData(data);
+        Photo photo = new Photo(IMAGE_NAME);
+        File fjpg = new File(IMAGE_DIR, IMAGE_NAME_JPG);
+        File fraw = new File(IMAGE_DIR, IMAGE_NAME_CR2);
 
         CONTROLLER.savePhoto(photo);
+        assertFalse(fjpg.exists());
+        assertFalse(fraw.exists());
 
-        File f = new File(IMAGE_DIR, IMAGE_NAME_JPG);
-        assertTrue(f.exists());
-        assertEquals(179083, f.length());
+        photo.setJpegData(new byte[] {32});
+        
+        CONTROLLER.savePhoto(photo);
+        assertTrue(fjpg.exists());
+        assertEquals(1, fjpg.length());
+        assertFalse(fraw.exists());
 
+        photo.setJpegData(new byte[] {32, 64});
+        photo.setRawData(new byte[] {32, 64});
+        CONTROLLER.savePhoto(photo);
+        assertEquals(2, fjpg.length());
+        assertTrue(fraw.exists());
+        assertEquals(2, fraw.length());
     }
 }

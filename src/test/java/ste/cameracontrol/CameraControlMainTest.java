@@ -81,7 +81,7 @@ public class CameraControlMainTest extends TestCase {
     public void testCameraConnected() throws Exception {
         LibusbJava.init(new CanonEOS1000D(true));
         CameraController.getInstance().initialize();
-        Thread.sleep(200);
+        Thread.sleep(100);
         assertNotNull(window.status);
         assertTrue(window.cameraControlsEnabled);
     }

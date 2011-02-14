@@ -35,6 +35,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.io.FilenameUtils;
 
@@ -328,9 +329,9 @@ public class CameraController implements Runnable {
             device.transferComplete(id);
 
             if (raw) {
-                photo.setJpegData(buf.toByteArray());
-            } else {
                 photo.setRawData(buf.toByteArray());
+            } else {
+                photo.setJpegData(buf.toByteArray());
             }
         } catch (Exception e) {
             throw new PTPException("Unable to store the object: " + e.getMessage(), e);
@@ -395,23 +396,16 @@ public class CameraController implements Runnable {
      * @throws IOException in case of IO errors
      */
     public void savePhoto(Photo photo) throws IOException {
-        File f = new File(configuration.getImageDir(), photo.getName());
-        FileOutputStream fos = null;
-        try {
-            fos = new FileOutputStream(f);
-            fos.write(photo.getJpegData());
-        } finally {
-            if (fos != null) {
-                try {
-                    fos.close();
-                } catch (IOException e) {
-                }
-                fos = null;
-            }
+        if (photo.getJpegData() != null) {
+            File f = new File(configuration.getImageDir(), photo.getName() + ".JPG");
+            FileUtils.writeByteArrayToFile(f, photo.getJpegData());
+        }
+
+        if (photo.getRawData() != null) {
+            File f = new File(configuration.getImageDir(), photo.getName() + ".CR2");
+            FileUtils.writeByteArrayToFile(f, photo.getRawData());
         }
     }
-
-
 
     /**
      * Runs the camera detecting monitor (required by Runnable)
@@ -502,4 +496,5 @@ public class CameraController implements Runnable {
             }
         }
     }
+
 }

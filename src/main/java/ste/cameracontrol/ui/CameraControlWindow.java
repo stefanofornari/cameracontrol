@@ -157,13 +157,7 @@ public class CameraControlWindow extends BaseFrame {
                 }
 
                 for (Photo photo: photos) {
-                    //
-                    // TODO: remove this limitation; the current version of
-                    // jrawio does not work
-                    //
-                    if (!photo.getName().toLowerCase().endsWith("cr2")) {
-                        new ImageFrame(photo).setVisible(true);
-                    }
+                    new ImageFrame(photo).setVisible(true);
                 }
                 return null;
             }
