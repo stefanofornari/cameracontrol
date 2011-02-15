@@ -46,7 +46,6 @@ public class ImageFrame extends BaseFrame {
     public static final String ZOOM_ORIGINAL_VALUE = "100%";
 
     private ImagePanel jpegPanel;
-    private ImagePanel rawPanel;
 
     private Photo photo;
 
@@ -66,12 +65,12 @@ public class ImageFrame extends BaseFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        imagesTabbedPane = new javax.swing.JTabbedPane();
         scrollPaneJpeg = new javax.swing.JScrollPane(jpegPanel);
-        scrollPaneRaw = new javax.swing.JScrollPane(rawPanel);
         bottomPanel = new javax.swing.JPanel();
         buttonsPanel = new javax.swing.JPanel();
         saveButton = new javax.swing.JButton();
+        rawIcon = new javax.swing.JLabel();
+        jpegIcon = new javax.swing.JLabel();
         jPanel1 = new javax.swing.JPanel();
         zoomFitButton = new javax.swing.JButton();
         zoom100Button = new javax.swing.JButton();
@@ -81,20 +80,12 @@ public class ImageFrame extends BaseFrame {
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setIconImage(getImage(ICON_CAMERACONTROL));
 
-        imagesTabbedPane.setTabPlacement(javax.swing.JTabbedPane.BOTTOM);
-        imagesTabbedPane.setFont(new java.awt.Font("Arial", 0, 10));
-
         scrollPaneJpeg.setName("scrollpane"); // NOI18N
-        imagesTabbedPane.addTab("JPEG", scrollPaneJpeg);
-
-        scrollPaneRaw.setName("scrollpane"); // NOI18N
-        imagesTabbedPane.addTab("RAW", scrollPaneRaw);
-
-        getContentPane().add(imagesTabbedPane, java.awt.BorderLayout.CENTER);
+        getContentPane().add(scrollPaneJpeg, java.awt.BorderLayout.CENTER);
 
         bottomPanel.setLayout(new javax.swing.BoxLayout(bottomPanel, javax.swing.BoxLayout.LINE_AXIS));
 
-        buttonsPanel.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEADING, 0, 3));
+        buttonsPanel.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEADING, 2, 3));
 
         saveButton.setFont(new java.awt.Font("Arial", 0, 10));
         saveButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/image-not-saved-16x16.png"))); // NOI18N
@@ -108,6 +99,12 @@ public class ImageFrame extends BaseFrame {
             }
         });
         buttonsPanel.add(saveButton);
+
+        rawIcon.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/raw.png"))); // NOI18N
+        buttonsPanel.add(rawIcon);
+
+        jpegIcon.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/jpeg.png"))); // NOI18N
+        buttonsPanel.add(jpegIcon);
 
         bottomPanel.add(buttonsPanel);
 
@@ -190,6 +187,9 @@ public class ImageFrame extends BaseFrame {
         double zoom = 100;
         if (ZOOM_FIT_VALUE.equals(zoomValue)) {
             Image img = jpegPanel.getImage();
+            if (img == null) {
+                return;
+            }
 
             int width = img.getWidth(null)+2;
             int height = img.getHeight(null)+2;
@@ -244,27 +244,17 @@ public class ImageFrame extends BaseFrame {
 
     private void initCustomComponents() {
         jpegPanel = new ImagePanel();
-        rawPanel = new ImagePanel();
 
         initComponents();
-
-        //
-        // We set the tabs based on which images are available. If the JPEG
-        // image is available, it takes the first tab and it is displayed by
-        // default.
-        //
+ 
         if (photo.hasJpeg()) {
             jpegPanel.setImage(photo.getJpegImage());
+            jpegIcon.setVisible(true);
         } else {
-            imagesTabbedPane.removeTabAt(0);
+            jpegIcon.setVisible(false);
         }
 
-
-        if (photo.hasRaw()) {
-            rawPanel.setImage(photo.getRawImage());
-        } else {
-            imagesTabbedPane.removeTabAt(1);
-        }
+        rawIcon.setVisible(photo.hasRaw());
 
         pack();
 
@@ -290,11 +280,11 @@ public class ImageFrame extends BaseFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel bottomPanel;
     private javax.swing.JPanel buttonsPanel;
-    private javax.swing.JTabbedPane imagesTabbedPane;
     private javax.swing.JPanel jPanel1;
+    private javax.swing.JLabel jpegIcon;
+    private javax.swing.JLabel rawIcon;
     private javax.swing.JButton saveButton;
     private javax.swing.JScrollPane scrollPaneJpeg;
-    private javax.swing.JScrollPane scrollPaneRaw;
     private javax.swing.JButton zoom100Button;
     private javax.swing.JButton zoomFitButton;
     private javax.swing.JScrollBar zoomScrollbar;

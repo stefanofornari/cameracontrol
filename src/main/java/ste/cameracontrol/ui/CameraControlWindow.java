@@ -71,7 +71,7 @@ public class CameraControlWindow extends BaseFrame {
         jMenuItem1 = new javax.swing.JMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        setTitle("Camera connection status");
+        setTitle("cameracontrol");
         setBackground(javax.swing.UIManager.getDefaults().getColor("window"));
         setIconImage(getImage(ICON_CAMERACONTROL));
         setMinimumSize(new java.awt.Dimension(500, 400));
