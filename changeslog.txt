@@ -1,4 +1,8 @@
-20100206
+20110216
+- releasing v1.1
+20110215
+- completed US14 Save RAW photo
+20110206
 - completed US6 Disable commands when camera not attached
 - completed US2 Menu item shortcuts
 20110205
