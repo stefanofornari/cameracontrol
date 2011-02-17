@@ -36,8 +36,6 @@ import ste.cameracontrol.ui.CameraControlWindow;
  */
 public class CameraControlMainTest extends TestCase {
 
-    private CameraControlMain cameraControl = null;
-    private CameraControlWindow window = null;
     
     public CameraControlMainTest(String testName) {
         super(testName);
@@ -51,13 +49,6 @@ public class CameraControlMainTest extends TestCase {
 
         System.setProperty(Configuration.CONFIG_IMAGEDIR, "/tmp/cameracontrol");
 
-        cameraControl = new CameraControlMain();
-
-        window = getWindow();
-
-        //
-        // status monitor should be now running
-        //
     }
 
     @Override
@@ -69,10 +60,11 @@ public class CameraControlMainTest extends TestCase {
         Field f = CameraControlMain.class.getDeclaredField("window");
         f.setAccessible(true);
 
-        return (CameraControlWindow)f.get(cameraControl);
+        return (CameraControlWindow)f.get(new CameraControlMain());
     }
 
     public void testControllerConfiguration() throws Exception {
+        CameraControlMain cameraControl = new CameraControlMain();
         Configuration c = CameraController.getInstance().getConfiguration();
         assertNotNull(c.getImageDir());
         assertTrue((new File(c.getImageDir())).exists());
@@ -80,8 +72,10 @@ public class CameraControlMainTest extends TestCase {
 
     public void testCameraConnected() throws Exception {
         LibusbJava.init(new CanonEOS1000D(true));
-        CameraController.getInstance().initialize();
+        CameraControlWindow window = getWindow();
+        System.out.println("/testCameraConnected");
         Thread.sleep(100);
+        System.out.println("testCameraConnected/");
         assertNotNull(window.status);
         assertTrue(window.cameraControlsEnabled);
     }
@@ -91,6 +85,7 @@ public class CameraControlMainTest extends TestCase {
         // we need to simulate a connection otherwise the status will not change
         //
         LibusbJava.init(new CanonEOS1000D(true));
+        CameraControlWindow window = getWindow();
         Thread.sleep(100);
         window.status = null;
         LibusbJava.init(new CanonEOS1000D(false));
@@ -101,6 +96,7 @@ public class CameraControlMainTest extends TestCase {
 
     public void testCameraNameDetected() throws Exception {
         LibusbJava.init(new CanonEOS1000D(true));
+        CameraControlWindow window = getWindow();
         Thread.sleep(100);
         assertNotNull(window.status);
         assertTrue("found " + window.status, window.status.indexOf("1000D") >= 0);
