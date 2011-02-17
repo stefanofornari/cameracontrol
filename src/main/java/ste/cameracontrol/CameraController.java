@@ -267,7 +267,7 @@ public class CameraController implements Runnable {
             // preparing the images
             //
             try {
-                Thread.sleep(2000);
+                Thread.sleep(1000);
             } catch (Exception e) {
                 //
                 // What to do???
