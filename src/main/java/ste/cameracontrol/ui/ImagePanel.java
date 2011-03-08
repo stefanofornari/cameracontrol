@@ -23,8 +23,11 @@ package ste.cameracontrol.ui;
 
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Insets;
+import java.awt.RenderingHints;
+import java.awt.image.BufferedImage;
 import javax.swing.JComponent;
 
 /**
@@ -33,20 +36,28 @@ import javax.swing.JComponent;
  */
 public class ImagePanel extends JComponent {
 
-    private Image img;
+    private BufferedImage img;
+    private BufferedImage displayedImage;
     private double scale;
+    private int rotation;
 
     public ImagePanel() {
         img = null;
         scale = 1.0;
+        rotation = 0;
     }
 
     public boolean hasImage() {
         return (img != null);
     }
 
-    public void setImage(Image img) {
+    public void setImage(BufferedImage img) {
         this.img = img;
+
+        displayedImage = (img == null)
+                       ? null
+                       : transform(img);
+
         repaint();
     }
 
@@ -66,7 +77,26 @@ public class ImagePanel extends JComponent {
      */
     public void setScale(double scale) {
         this.scale = scale;
+
+        displayedImage = (img == null)
+                       ? null
+                       : transform(img);
         repaint();
+    }
+
+
+    /**
+     * @return the rotation
+     */
+    public int getRotation() {
+        return rotation;
+    }
+
+    /**
+     * @param rotation the rotation to set
+     */
+    public void setRotation(int rotation) {
+        this.rotation = rotation;
     }
 
     @Override
@@ -83,7 +113,7 @@ public class ImagePanel extends JComponent {
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
 
-        if(img == null) {
+        if(displayedImage == null) {
             return;
         }
 
@@ -94,17 +124,49 @@ public class ImagePanel extends JComponent {
         int w = getWidth() - insets.left - insets.right;
         int h = getHeight() - insets.top - insets.bottom;
 
-        int src_w = img.getWidth(null);
-        int src_h = img.getHeight(null);
+        //
+        // image should be already scaled at this point...
+        //
+        int imgW = displayedImage.getWidth(null);
+        int imgH = displayedImage.getHeight(null);
 
-        int dst_w = (int)(scale * src_w);
-        int dst_h = (int)(scale * src_h);
+        int dx = x + (w-imgW)/2;
+        int dy = y + (h-imgH)/2;
 
-        int dx = x + (w-dst_w)/2;
-        int dy = y + (h-dst_h)/2;
-
-        g.drawImage(img, dx, dy, dx+dst_w, dy+dst_h, 0, 0, src_w, src_h, null);
+        g.drawImage(displayedImage, dx, dy, dx+imgW, dy+imgH, 0, 0, imgW, imgH, null);
     }
 
-    
+    // --------------------------------------------------------- Private methods
+
+    /**
+     * Creates a new BufferedImage applying scale and rotation to the given
+     * image as per the scaling and rotation factors currently set.
+     *
+     * @param img the source image
+     *
+     * @return a new image resulting by applying scaling and rotation
+     */
+    private BufferedImage transform(BufferedImage img) {
+        Insets insets = getInsets();
+        int x = insets.left;
+        int y = insets.top;
+
+        int w = getWidth() - insets.left - insets.right;
+        int h = getHeight() - insets.top - insets.bottom;
+
+        int srcW = img.getWidth(null);
+        int srcH = img.getHeight(null);
+
+        int dstW = (int)(scale * srcW);
+        int dstH = (int)(scale * srcH);
+
+        BufferedImage destinationImage = new BufferedImage(dstW, dstH, img.getType());
+        Graphics2D g = destinationImage.createGraphics();
+        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+        g.drawImage(img, 0, 0, dstW, dstH, 0, 0, srcW, srcH, null);
+        g.dispose();
+
+        return destinationImage;
+    }
+
 }

@@ -17,7 +17,7 @@ import junit.framework.TestCase;
 public class ImagePanelTest extends TestCase {
 
     private final String TESTFILE = "images/about.png";
-    
+
     public ImagePanelTest(String testName) {
         super(testName);
     }
@@ -63,6 +63,28 @@ public class ImagePanelTest extends TestCase {
         Image i = p.getImage();
         assertEquals(300, i.getWidth(null));
         assertEquals(225, i.getHeight(null));
+    }
+
+    public void testScaleBeforeSettingImage() throws Exception {
+        ImagePanel p = new ImagePanel();
+
+        p.setScale(0.5);
+        p.setImage(ImageIO.read(ClassLoader.getSystemResourceAsStream(TESTFILE)));
+
+        Image i = p.getImage();
+        assertEquals(112, i.getWidth(null));
+        assertEquals(150, i.getHeight(null));
+    }
+
+    public void _testRotation() throws Exception {
+        ImagePanel p = new ImagePanel();
+
+        p.setImage(ImageIO.read(ClassLoader.getSystemResourceAsStream(TESTFILE)));
+        p.setRotation(90);
+
+        Image i = p.getImage();
+        assertEquals(225, i.getWidth(null));
+        assertEquals(300, i.getHeight(null));
     }
 
 }
