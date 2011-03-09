@@ -41,7 +41,7 @@ public class ImageFrame extends BaseFrame {
     public static final int MAX_ZOOM = 1000;
 
     public static final String ICON_IMAGE_SAVED = "images/image-saved-16x16.png";
-    
+
     public static final String ZOOM_FIT_VALUE = "Fit";
     public static final String ZOOM_ORIGINAL_VALUE = "100%";
 
@@ -71,7 +71,9 @@ public class ImageFrame extends BaseFrame {
         saveButton = new javax.swing.JButton();
         rawIcon = new javax.swing.JLabel();
         jpegIcon = new javax.swing.JLabel();
-        jPanel1 = new javax.swing.JPanel();
+        viewButtonsPanel = new javax.swing.JPanel();
+        rotateLeftButton = new javax.swing.JButton();
+        rotateRightButton = new javax.swing.JButton();
         zoomFitButton = new javax.swing.JButton();
         zoom100Button = new javax.swing.JButton();
         zoomScrollbar = new javax.swing.JScrollBar();
@@ -108,7 +110,29 @@ public class ImageFrame extends BaseFrame {
 
         bottomPanel.add(buttonsPanel);
 
-        jPanel1.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 0, 3));
+        viewButtonsPanel.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 0, 3));
+
+        rotateLeftButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/image-rotate-left-16x16.png"))); // NOI18N
+        rotateLeftButton.setMaximumSize(new java.awt.Dimension(20, 20));
+        rotateLeftButton.setMinimumSize(new java.awt.Dimension(20, 20));
+        rotateLeftButton.setPreferredSize(new java.awt.Dimension(20, 20));
+        rotateLeftButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                rotateLeftButtonActionPerformed(evt);
+            }
+        });
+        viewButtonsPanel.add(rotateLeftButton);
+
+        rotateRightButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/image-rotate-right-16x16.png"))); // NOI18N
+        rotateRightButton.setMaximumSize(new java.awt.Dimension(20, 20));
+        rotateRightButton.setMinimumSize(new java.awt.Dimension(20, 20));
+        rotateRightButton.setPreferredSize(new java.awt.Dimension(20, 20));
+        rotateRightButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                rotateRightButtonActionPerformed(evt);
+            }
+        });
+        viewButtonsPanel.add(rotateRightButton);
 
         zoomFitButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/zoom-fit-best-16x16.png"))); // NOI18N
         zoomFitButton.setMaximumSize(new java.awt.Dimension(20, 20));
@@ -119,7 +143,7 @@ public class ImageFrame extends BaseFrame {
                 zoomFitButtonActionPerformed(evt);
             }
         });
-        jPanel1.add(zoomFitButton);
+        viewButtonsPanel.add(zoomFitButton);
 
         zoom100Button.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/zoom-original-16x16.png"))); // NOI18N
         zoom100Button.setMaximumSize(new java.awt.Dimension(20, 20));
@@ -130,7 +154,7 @@ public class ImageFrame extends BaseFrame {
                 zoom100ButtonActionPerformed(evt);
             }
         });
-        jPanel1.add(zoom100Button);
+        viewButtonsPanel.add(zoom100Button);
 
         zoomScrollbar.setMaximum(1000);
         zoomScrollbar.setMinimum(10);
@@ -144,7 +168,7 @@ public class ImageFrame extends BaseFrame {
                 zoomScrollbarAdjustmentValueChanged(evt);
             }
         });
-        jPanel1.add(zoomScrollbar);
+        viewButtonsPanel.add(zoomScrollbar);
 
         zoomValueBox.setEditable(true);
         zoomValueBox.setFont(new java.awt.Font("Arial", 0, 10));
@@ -157,9 +181,9 @@ public class ImageFrame extends BaseFrame {
                 zoomValueBoxActionPerformed(evt);
             }
         });
-        jPanel1.add(zoomValueBox);
+        viewButtonsPanel.add(zoomValueBox);
 
-        bottomPanel.add(jPanel1);
+        bottomPanel.add(viewButtonsPanel);
 
         getContentPane().add(bottomPanel, java.awt.BorderLayout.SOUTH);
 
@@ -213,7 +237,7 @@ public class ImageFrame extends BaseFrame {
 
     private void zoomValueBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_zoomValueBoxActionPerformed
         String zoomValue = (String)zoomValueBox.getSelectedItem();
-        
+
         if (zoomValue == null) {
             return;
         }
@@ -242,11 +266,21 @@ public class ImageFrame extends BaseFrame {
         }
     }//GEN-LAST:event_saveButtonActionPerformed
 
+    private void rotateRightButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_rotateRightButtonActionPerformed
+        jpegPanel.setRotation((jpegPanel.getRotation()+90) % 360);
+        jpegPanel.revalidate();
+    }//GEN-LAST:event_rotateRightButtonActionPerformed
+
+    private void rotateLeftButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_rotateLeftButtonActionPerformed
+        jpegPanel.setRotation((jpegPanel.getRotation()-90) % 360);
+        jpegPanel.revalidate();
+    }//GEN-LAST:event_rotateLeftButtonActionPerformed
+
     private void initCustomComponents() {
         jpegPanel = new ImagePanel();
 
         initComponents();
- 
+
         if (photo.hasJpeg()) {
             jpegPanel.setImage(photo.getJpegImage());
             jpegIcon.setVisible(true);
@@ -280,11 +314,13 @@ public class ImageFrame extends BaseFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel bottomPanel;
     private javax.swing.JPanel buttonsPanel;
-    private javax.swing.JPanel jPanel1;
     private javax.swing.JLabel jpegIcon;
     private javax.swing.JLabel rawIcon;
+    private javax.swing.JButton rotateLeftButton;
+    private javax.swing.JButton rotateRightButton;
     private javax.swing.JButton saveButton;
     private javax.swing.JScrollPane scrollPaneJpeg;
+    private javax.swing.JPanel viewButtonsPanel;
     private javax.swing.JButton zoom100Button;
     private javax.swing.JButton zoomFitButton;
     private javax.swing.JScrollBar zoomScrollbar;

@@ -36,25 +36,25 @@ import javax.swing.JComponent;
  */
 public class ImagePanel extends JComponent {
 
-    private BufferedImage img;
-    private BufferedImage displayedImage;
+    private BufferedImage image;
+    private BufferedImage transformedImage;
     private double scale;
     private int rotation;
 
     public ImagePanel() {
-        img = null;
+        image = null;
         scale = 1.0;
         rotation = 0;
     }
 
     public boolean hasImage() {
-        return (img != null);
+        return (image != null);
     }
 
     public void setImage(BufferedImage img) {
-        this.img = img;
+        this.image = img;
 
-        displayedImage = (img == null)
+        transformedImage = (img == null)
                        ? null
                        : transform(img);
 
@@ -62,7 +62,7 @@ public class ImagePanel extends JComponent {
     }
 
     public Image getImage() {
-        return img;
+        return image;
     }
 
     /**
@@ -78,9 +78,9 @@ public class ImagePanel extends JComponent {
     public void setScale(double scale) {
         this.scale = scale;
 
-        displayedImage = (img == null)
+        transformedImage = (image == null)
                        ? null
-                       : transform(img);
+                       : transform(image);
         repaint();
     }
 
@@ -96,15 +96,24 @@ public class ImagePanel extends JComponent {
      * @param rotation the rotation to set
      */
     public void setRotation(int rotation) {
-        this.rotation = rotation;
+        this.rotation = (rotation + 360) % 360;
+
+        transformedImage = (image == null)
+                       ? null
+                       : transform(image);
+
+        repaint();
     }
 
     @Override
     public Dimension getPreferredSize() {
-        if (img == null) {
+        if (transformedImage == null) {
             return super.getPreferredSize();
         } else {
-            return new Dimension((int)(img.getWidth(null)*scale), (int)(img.getHeight(null)*scale));
+            return new Dimension(
+                           (int)(transformedImage.getWidth(null)),
+                           (int)(transformedImage.getHeight(null))
+                   );
         }
     }
 
@@ -113,7 +122,7 @@ public class ImagePanel extends JComponent {
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
 
-        if(displayedImage == null) {
+        if(transformedImage == null) {
             return;
         }
 
@@ -121,19 +130,19 @@ public class ImagePanel extends JComponent {
         int x = insets.left;
         int y = insets.top;
 
-        int w = getWidth() - insets.left - insets.right;
-        int h = getHeight() - insets.top - insets.bottom;
+        int w = getWidth() - x- insets.right;
+        int h = getHeight() - y - insets.bottom;
 
         //
-        // image should be already scaled at this point...
+        // image should be already scaled and rotated at this point...
         //
-        int imgW = displayedImage.getWidth(null);
-        int imgH = displayedImage.getHeight(null);
+        int imgW = transformedImage.getWidth(null);
+        int imgH = transformedImage.getHeight(null);
 
         int dx = x + (w-imgW)/2;
         int dy = y + (h-imgH)/2;
 
-        g.drawImage(displayedImage, dx, dy, dx+imgW, dy+imgH, 0, 0, imgW, imgH, null);
+        g.drawImage(transformedImage, dx, dy, null);
     }
 
     // --------------------------------------------------------- Private methods
@@ -147,23 +156,35 @@ public class ImagePanel extends JComponent {
      * @return a new image resulting by applying scaling and rotation
      */
     private BufferedImage transform(BufferedImage img) {
-        Insets insets = getInsets();
-        int x = insets.left;
-        int y = insets.top;
-
-        int w = getWidth() - insets.left - insets.right;
-        int h = getHeight() - insets.top - insets.bottom;
-
-        int srcW = img.getWidth(null);
-        int srcH = img.getHeight(null);
+        int srcW = ((rotation == 90) || (rotation == 270))
+                 ? img.getHeight(null)
+                 : img.getWidth(null)
+                 ;
+        int srcH = ((rotation == 90) || (rotation == 270))
+                 ? img.getWidth(null)
+                 : img.getHeight(null)
+                 ;
 
         int dstW = (int)(scale * srcW);
         int dstH = (int)(scale * srcH);
 
         BufferedImage destinationImage = new BufferedImage(dstW, dstH, img.getType());
         Graphics2D g = destinationImage.createGraphics();
+        g.scale(scale, scale);
         g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-        g.drawImage(img, 0, 0, dstW, dstH, 0, 0, srcW, srcH, null);
+        switch (rotation) {
+            case 90:
+                g.rotate(Math.toRadians(rotation), srcW/2.0, srcW/2.0);
+                break;
+            case 180:
+                g.rotate(Math.toRadians(rotation), srcW/2.0, srcH/2.0);
+                break;
+            case 270:
+                g.rotate(Math.toRadians(rotation), srcH/2.0, srcH/2.0);
+                break;
+        }
+
+        g.drawImage(img, 0, 0, null);
         g.dispose();
 
         return destinationImage;

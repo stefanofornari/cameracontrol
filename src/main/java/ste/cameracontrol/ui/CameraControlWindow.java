@@ -175,7 +175,7 @@ public class CameraControlWindow extends BaseFrame {
 
     private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem1ActionPerformed
         Photo photo = new Photo("demo");
-        
+
         try {
             BufferedImage image = ImageIO.read(ClassLoader.getSystemResourceAsStream("images/about.png"));
             ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -188,7 +188,8 @@ public class CameraControlWindow extends BaseFrame {
             //
             e.printStackTrace();
         }
-        new ImageFrame(photo).setVisible(true);
+        ImageFrame f = new ImageFrame(photo);
+        f.setVisible(true);
     }//GEN-LAST:event_jMenuItem1ActionPerformed
 
     private void aboutMenuItemActionPerformed1(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_aboutMenuItemActionPerformed1
@@ -243,7 +244,7 @@ public class CameraControlWindow extends BaseFrame {
         if (status == null) {
             statusLabel.setText("");
         }
-        
+
         statusLabel.setText(StringUtils.abbreviateMiddle(status, "...", 50));
     }
 

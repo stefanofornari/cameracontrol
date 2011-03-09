@@ -7,6 +7,8 @@ package ste.cameracontrol.ui;
 
 import java.awt.Dimension;
 import java.awt.Image;
+import java.awt.image.BufferedImage;
+import java.lang.reflect.Field;
 import javax.imageio.ImageIO;
 import junit.framework.TestCase;
 
@@ -30,6 +32,14 @@ public class ImagePanelTest extends TestCase {
     @Override
     protected void tearDown() throws Exception {
         super.tearDown();
+    }
+
+    private BufferedImage getTransformedImage(ImagePanel p) throws Exception {
+        Field f = ImagePanel.class.getDeclaredField("transformedImage");
+
+        f.setAccessible(true);
+
+        return (BufferedImage)f.get(p);
     }
 
     public void testHasImage() throws Exception {
@@ -71,20 +81,40 @@ public class ImagePanelTest extends TestCase {
         p.setScale(0.5);
         p.setImage(ImageIO.read(ClassLoader.getSystemResourceAsStream(TESTFILE)));
 
-        Image i = p.getImage();
-        assertEquals(112, i.getWidth(null));
-        assertEquals(150, i.getHeight(null));
+        Image i = getTransformedImage(p);
+        assertEquals(150, i.getWidth(null));
+        assertEquals(112, i.getHeight(null));
     }
 
-    public void _testRotation() throws Exception {
+    public void testRotation() throws Exception {
         ImagePanel p = new ImagePanel();
 
         p.setImage(ImageIO.read(ClassLoader.getSystemResourceAsStream(TESTFILE)));
         p.setRotation(90);
 
-        Image i = p.getImage();
+        Image i = getTransformedImage(p);
         assertEquals(225, i.getWidth(null));
         assertEquals(300, i.getHeight(null));
+
+        p.setRotation(-90);
+        i = getTransformedImage(p);
+        assertEquals(225, i.getWidth(null));
+        assertEquals(300, i.getHeight(null));
+
+        p.setRotation(180);
+        i = getTransformedImage(p);
+        assertEquals(300, i.getWidth(null));
+        assertEquals(225, i.getHeight(null));
+
+        p.setRotation(270);
+        i = getTransformedImage(p);
+        assertEquals(225, i.getWidth(null));
+        assertEquals(300, i.getHeight(null));
+
+        p.setRotation(0);
+        i = getTransformedImage(p);
+        assertEquals(300, i.getWidth(null));
+        assertEquals(225, i.getHeight(null));
     }
 
 }
