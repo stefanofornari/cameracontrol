@@ -1,3 +1,5 @@
+20110310
+- completed US19 Image rotation
 20110216
 - releasing v1.1
 20110215
