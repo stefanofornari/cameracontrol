@@ -22,54 +22,44 @@
 
 package ste.cameracontrol.ui;
 
-import junit.framework.TestCase;
+import static org.assertj.core.api.BDDAssertions.then;
+import org.junit.Test;
 
 /**
  *
  * @author ste
  */
-public class TextViewerFormTest extends TestCase {
-    
-    public TextViewerFormTest(String testName) {
-        super(testName);
-    }
+public class BugFreeTextViewerForm {
 
-    @Override
-    protected void setUp() throws Exception {
-        super.setUp();
-    }
-
-    @Override
-    protected void tearDown() throws Exception {
-        super.tearDown();
-    }
-
-    public void testLoadText() {
+    @Test
+    public void load_text() {
         TextViewerForm f = new TextViewerForm(null, true);
 
         f.loadText("license.txt");
 
-        assertEquals("This is the license file.", f.getText());
+        then(f.getText()).isEqualTo("This is the license file.");
     }
 
-    public void testChangeText() {
+    @Test
+    public void change_text() {
         TextViewerForm f = new TextViewerForm(null, true);
 
         f.loadText("license.txt");
         f.loadText("credits.txt");
 
-        assertEquals("This is the credits file.", f.getText());
+        then(f.getText()).isEqualTo("This is the credits file.");
     }
 
-    public void testResourceNotFound() {
+    @Test
+    public void resource_not_found() {
         final String NOT_FOUND = "none.txt";
-        
+
         TextViewerForm f = new TextViewerForm(null, true);
 
         f.loadText(NOT_FOUND);
 
-        assertTrue(f.getText().startsWith("Resource not found"));
-        assertTrue(f.getText().contains(NOT_FOUND));
+        then(f.getText()).startsWith("Resource not found");
+        then(f.getText()).contains(NOT_FOUND);
     }
 
 }

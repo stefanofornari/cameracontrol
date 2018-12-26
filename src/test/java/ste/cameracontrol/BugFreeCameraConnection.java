@@ -21,56 +21,46 @@
  */
 package ste.cameracontrol;
 
-import ch.ntb.usb.devinf.CanonEOS1000D;
 import ch.ntb.usb.LibusbJava;
 import ch.ntb.usb.UsbDevice;
-import junit.framework.TestCase;
+import ch.ntb.usb.devinf.CanonEOS1000D;
+import static org.assertj.core.api.BDDAssertions.then;
+import org.junit.Test;
 
 /**
  *
  * @author ste
  */
-public class CameraConnectionTest extends TestCase {
-    
-    public CameraConnectionTest(String testName) {
-        super(testName);
-    }
+public class BugFreeCameraConnection {
 
-    @Override
-    protected void setUp() throws Exception {
-        super.setUp();
-    }
-
-    @Override
-    protected void tearDown() throws Exception {
-        super.tearDown();
-    }
-
-    public void testConnectionTrue() {
+    @Test
+    public void conected_ok() {
         LibusbJava.init(new CanonEOS1000D());
-        
+
         CameraConnection connection = new CameraConnection();
 
-        assertTrue(connection.isConnected());
+        then(connection.isConnected()).isTrue();
     }
 
-    public void testConnectionFalse() {
+    @Test
+    public void not_connected() {
         LibusbJava.init(new CanonEOS1000D(false));
 
         CameraConnection connection = new CameraConnection();
 
-        assertFalse(connection.isConnected());
+        then(connection.isConnected()).isFalse();
     }
 
-    public void testFindExistingDevice() {
+    @Test
+    public void find_exising_device() {
         CanonEOS1000D devinfo = new CanonEOS1000D(true);
         LibusbJava.init(devinfo);
 
         CameraConnection connection = new CameraConnection();
         UsbDevice dev = connection.findCamera();
 
-        assertEquals(devinfo.getProductId(), dev.getDescriptor().getProductId());
-        assertEquals(devinfo.getVendorId(), dev.getDescriptor().getVendorId());
+        then(dev.getDescriptor().getProductId()).isEqualTo(devinfo.getProductId());
+        then(dev.getDescriptor().getVendorId()).isEqualTo(devinfo.getVendorId());
     }
 
 }

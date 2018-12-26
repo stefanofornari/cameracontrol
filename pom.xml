@@ -8,10 +8,35 @@
     <name>cameracontrol</name>
     <url>http://maven.apache.org</url>
     <dependencies>
+        <!--
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <version>5.3.2</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.vintage</groupId>
+            <artifactId>junit-vintage-engine</artifactId>
+            <version>5.3.2</version>
+            <scope>test</scope>
+        </dependency>
+        -->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>3.8.1</version>
+            <version>4.12</version>
+        </dependency>
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <version>3.5.2</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.stefanbirkner</groupId>
+            <artifactId>system-rules</artifactId>
+            <version>1.19.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -93,10 +118,29 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.0</version>
                 <configuration>
                     <source>1.6</source>
                     <target>1.6</target>
                     <showDeprecation>true</showDeprecation>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.22.1</version>
+                <configuration>
+                    <includes>
+                        <include>**/BG*.java</include>
+                        <include>**/BugFree*.java</include>
+                        <include>**/*BugFree.java</include>
+                        <include>**/*BF.java</include>
+                        <include>**/*Test.java</include>
+                    </includes>
+                    <forkCount>2</forkCount>
+                    <reuseForks>false</reuseForks>
+                    <parallel>classes</parallel>
+                    <threadCountClasses>1</threadCountClasses>
                 </configuration>
             </plugin>
             <plugin>

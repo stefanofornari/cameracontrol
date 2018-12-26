@@ -26,61 +26,46 @@ import ch.ntb.usb.LibusbJava;
 import ch.ntb.usb.devinf.CanonEOS1000D;
 import java.io.File;
 import java.lang.reflect.Field;
-import junit.framework.TestCase;
-
+import static org.assertj.core.api.BDDAssertions.then;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.contrib.java.lang.system.ProvideSystemProperty;
 import ste.cameracontrol.ui.CameraControlWindow;
 
 /**
  *
- * @author ste
  */
-public class CameraControlMainTest extends TestCase {
+public class BugFreeCameraControlMain {
 
-    
-    public CameraControlMainTest(String testName) {
-        super(testName);
-    }
+    @Rule
+    public final ProvideSystemProperty IMAGEDIR
+	 = new ProvideSystemProperty(Configuration.CONFIG_IMAGEDIR, "/tmp/cameracontrol");
 
-    @Override
-    protected void setUp() throws Exception {
-        super.setUp();
-
+    @Before
+    public void before() throws Exception {
         LibusbJava.init(new CanonEOS1000D(false));
-
-        System.setProperty(Configuration.CONFIG_IMAGEDIR, "/tmp/cameracontrol");
-
     }
 
-    @Override
-    protected void tearDown() throws Exception {
-        super.tearDown();
-    }
-
-    private CameraControlWindow getWindow() throws Exception {
-        Field f = CameraControlMain.class.getDeclaredField("window");
-        f.setAccessible(true);
-
-        return (CameraControlWindow)f.get(new CameraControlMain());
-    }
-
-    public void testControllerConfiguration() throws Exception {
+    @Test
+    public void controller_configuration() throws Exception {
         CameraControlMain cameraControl = new CameraControlMain();
         Configuration c = CameraController.getInstance().getConfiguration();
-        assertNotNull(c.getImageDir());
-        assertTrue((new File(c.getImageDir())).exists());
+        then(c.getImageDir()).isNotNull();
+        then((new File(c.getImageDir()))).exists();
     }
 
-    public void testCameraConnected() throws Exception {
+    public void camera_connected() throws Exception {
         LibusbJava.init(new CanonEOS1000D(true));
         CameraControlWindow window = getWindow();
         System.out.println("/testCameraConnected");
         Thread.sleep(100);
         System.out.println("testCameraConnected/");
-        assertNotNull(window.status);
-        assertTrue(window.cameraControlsEnabled);
+        then(window.status).isNotNull();
+        then(window.cameraControlsEnabled).isTrue();
     }
 
-    public void testCameraDisconnected() throws Exception {
+    public void camera_disconnected() throws Exception {
         //
         // we need to simulate a connection otherwise the status will not change
         //
@@ -90,16 +75,27 @@ public class CameraControlMainTest extends TestCase {
         window.status = null;
         LibusbJava.init(new CanonEOS1000D(false));
         Thread.sleep(100);
-        assertNull(window.status);
-        assertFalse(window.cameraControlsEnabled);
+        then(window.status).isNull();
+        then(window.cameraControlsEnabled).isFalse();
     }
 
-    public void testCameraNameDetected() throws Exception {
+    public void camera_name_detected() throws Exception {
         LibusbJava.init(new CanonEOS1000D(true));
         CameraControlWindow window = getWindow();
         Thread.sleep(100);
-        assertNotNull(window.status);
-        assertTrue("found " + window.status, window.status.indexOf("1000D") >= 0);
+        then(window.status).isNotNull();
+        then(window.status.indexOf("1000D")).isGreaterThanOrEqualTo(0);
+        // "found " + window.status
     }
+
+    // --------------------------------------------------------- private methods
+
+    private CameraControlWindow getWindow() throws Exception {
+        Field f = CameraControlMain.class.getDeclaredField("window");
+        f.setAccessible(true);
+
+        return (CameraControlWindow)f.get(new CameraControlMain());
+    }
+
 
 }
