@@ -21,9 +21,7 @@
  */
 package ste.cameracontrol.ui;
 
-import ch.ntb.usb.USBBusyException;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import org.apache.commons.cli.CommandLine;
@@ -34,6 +32,7 @@ import org.apache.commons.cli.PosixParser;
 import ste.cameracontrol.CameraController;
 import ste.cameracontrol.Configuration;
 import ste.cameracontrol.Photo;
+import ste.ptp.PTPBusyException;
 import ste.ptp.PTPException;
 
 /**
@@ -46,7 +45,7 @@ public class CameraControlCLI {
     /** No instances permitted */
     private CameraControlCLI() {
     }
-    
+
     // options
     static private File directory;
     static private String device;
@@ -54,7 +53,7 @@ public class CameraControlCLI {
     static private int storageId;
 
     static private CameraController controller = null;
-        
+
     private static void usage(int status) {
         System.err.println("Usage: jphoto command [options]");
 
@@ -266,7 +265,7 @@ public class CameraControlCLI {
             }
             if (line.hasOption('d')) {
                 directory = new File(line.getOptionValue('d'));
-                
+
             } else {
                 directory = new File("images");
             }
@@ -302,7 +301,7 @@ public class CameraControlCLI {
                 /*
                 if ("cameras".equals (argv [c]) || "devices".equals (argv [c]))
                 cameras (argv, c);
-                else 
+                else
                 */
                 if ("get-events".equals(arg)) {
                     getEvents();
@@ -346,16 +345,11 @@ public class CameraControlCLI {
             System.err.println("Device does not support " + e.getMessage());
             System.exit(1);
 
+        } catch (PTPBusyException x) {
+            System.err.println("The camera is busy. Please make sure not any other program is using and locking the device.");
+            System.exit(1);
         } catch (PTPException e) {
-            //
-            // Let's intercept for now when a device is busy
-            //
-            Throwable cause = e.getCause();
-            if (cause instanceof USBBusyException) {
-                System.err.println("The camera is busy. Please make sure not any other program is using and locking the device.");
-            } else {
-                System.err.println(e.getMessage());
-            }
+            System.err.println(e.getMessage());
             System.exit(1);
         } catch (SecurityException e) {
             System.err.println(e.getMessage());

@@ -22,12 +22,9 @@
 
 package ste.cameracontrol;
 
-import ch.ntb.usb.LibusbJava;
-import ch.ntb.usb.devinf.CanonEOS1000D;
 import java.io.File;
 import java.lang.reflect.Field;
 import static org.assertj.core.api.BDDAssertions.then;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.ProvideSystemProperty;
@@ -42,11 +39,6 @@ public class BugFreeCameraControlMain {
     public final ProvideSystemProperty IMAGEDIR
 	 = new ProvideSystemProperty(Configuration.CONFIG_IMAGEDIR, "/tmp/cameracontrol");
 
-    @Before
-    public void before() throws Exception {
-        LibusbJava.init(new CanonEOS1000D(false));
-    }
-
     @Test
     public void controller_configuration() throws Exception {
         CameraControlMain cameraControl = new CameraControlMain();
@@ -56,7 +48,6 @@ public class BugFreeCameraControlMain {
     }
 
     public void camera_connected() throws Exception {
-        LibusbJava.init(new CanonEOS1000D(true));
         CameraControlWindow window = getWindow();
         System.out.println("/testCameraConnected");
         Thread.sleep(100);
@@ -69,18 +60,15 @@ public class BugFreeCameraControlMain {
         //
         // we need to simulate a connection otherwise the status will not change
         //
-        LibusbJava.init(new CanonEOS1000D(true));
         CameraControlWindow window = getWindow();
         Thread.sleep(100);
         window.status = null;
-        LibusbJava.init(new CanonEOS1000D(false));
         Thread.sleep(100);
         then(window.status).isNull();
         then(window.cameraControlsEnabled).isFalse();
     }
 
     public void camera_name_detected() throws Exception {
-        LibusbJava.init(new CanonEOS1000D(true));
         CameraControlWindow window = getWindow();
         Thread.sleep(100);
         then(window.status).isNotNull();

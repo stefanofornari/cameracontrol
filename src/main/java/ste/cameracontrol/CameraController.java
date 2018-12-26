@@ -23,22 +23,18 @@
 
 package ste.cameracontrol;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import ch.ntb.usb.Device;
-import ch.ntb.usb.USB;
-import ch.ntb.usb.UsbDevice;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import javax.usb.UsbDevice;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.io.FilenameUtils;
-
+import org.apache.commons.lang3.StringUtils;
 import ste.ptp.DeviceInfo;
 import ste.ptp.OutputStreamData;
 import ste.ptp.PTPException;
@@ -66,7 +62,7 @@ public class CameraController implements Runnable {
     private ArrayList<CameraListener> listeners;
 
     private boolean cameraMonitorActive;
-    private Device camera;
+    private UsbDevice camera;
     private boolean cameraConnected;
 
     private Configuration configuration;
@@ -92,7 +88,7 @@ public class CameraController implements Runnable {
      * Creates a new CameraController with the given configuration
      *
      * @param configuration the configuration object that contains the configuration
-     * 
+     *
      * @throws  IllegalArgumentException if configuration is null
      */
     protected CameraController(Configuration configuration) {
@@ -102,7 +98,7 @@ public class CameraController implements Runnable {
 
     /**
      * Returns the singleton instance of CameraController
-     * 
+     *
      * @return the the singleton instance of CameraControllers
      */
     public static CameraController getInstance() {
@@ -144,7 +140,7 @@ public class CameraController implements Runnable {
 
     /**
      * Checks the connection with the camera.
-     * 
+     *
      * @return true if the camera is connected, false otherwise
      */
     public boolean isConnected() {
@@ -189,7 +185,7 @@ public class CameraController implements Runnable {
     /**
      * Retrieves and prints on the standard output the device capabilities of
      * the camera.
-     * 
+     *
      * @throws PTPException in case of errors
      */
     public void devinfo() throws PTPException {
@@ -417,7 +413,7 @@ public class CameraController implements Runnable {
         while (cameraMonitorActive) {
             boolean cameraConnectedOld = cameraConnected;
 
-            checkCamera(); 
+            checkCamera();
             if (cameraConnectedOld != cameraConnected) {
                 setConnected();
             }
@@ -463,16 +459,11 @@ public class CameraController implements Runnable {
 
     private synchronized void checkCamera() {
         UsbDevice dev = connection.findCamera();
-        
-        cameraConnected = (dev != null);
 
         if (dev == null) {
             cameraCleanup();
         } else {
-            camera = USB.getDevice(
-                         dev.getDescriptor().getVendorId(),
-                         dev.getDescriptor().getProductId()
-                     );
+            camera = dev;
             cameraConnected = true;
         }
     }

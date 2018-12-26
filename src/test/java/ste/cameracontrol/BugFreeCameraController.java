@@ -22,16 +22,18 @@
 
 package ste.cameracontrol;
 
-import ch.ntb.usb.LibusbJava;
-import ch.ntb.usb.devinf.CanonEOS1000D;
 import java.io.File;
 import java.lang.reflect.Method;
+import javax.usb.UsbDeviceDescriptor;
+import javax.usb.UsbHostManager;
 import static org.assertj.core.api.Assertions.fail;
 import static org.assertj.core.api.BDDAssertions.then;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import ste.cameracontrol.event.ConnectedEventListener;
+import ste.cameracontrol.usb.CanonEOS1000D;
+import ste.cameracontrol.usb.VirtualUSBServices;
 import ste.ptp.PTPException;
 import ste.ptp.Response;
 import ste.ptp.eos.EosEvent;
@@ -47,7 +49,6 @@ public class BugFreeCameraController {
     public final String IMAGE_NAME_JPG = IMAGE_NAME + ".JPG";
     public final String IMAGE_NAME_CR2 = IMAGE_NAME + ".CR2";
 
-    private CameraController CONTROLLER = null;
     private Configuration    CONFIG     = null;
 
     @Before
@@ -68,11 +69,13 @@ public class BugFreeCameraController {
         CONFIG = new Configuration();
         CONFIG.setImageDir(IMAGE_DIR);
 
-        CONTROLLER = CameraController.getInstance();
-        CONTROLLER.initialize(CONFIG);
-
         new File(IMAGE_DIR, IMAGE_NAME_JPG).delete();
         new File(IMAGE_DIR, IMAGE_NAME_CR2).delete();
+
+        //
+        // NOTE: we do not instatiate a global CameraController to make the
+        // specs thread safe
+        //
     }
 
     @After
@@ -98,20 +101,20 @@ public class BugFreeCameraController {
 
     @Test
     public void camera_connected() throws Exception {
-        setCameraStatus(true);
-        then(CONTROLLER.isConnected()).isTrue();
+        final CameraController C = givenController();
+
+        then(C.isConnected()).isTrue();
     }
 
     @Test
     public void camera_not_connected() throws Exception {
-        setCameraStatus(false);
-        then(CONTROLLER.isConnected()).isFalse();
+        final CameraController C = givenController(false);
+        then(C.isConnected()).isFalse();
     }
 
     @Test
     public void no_connection_event() throws Exception {
-        setCameraStatus(true);
-        fireCameraConnectionEvent();
+        fireCameraConnectionEvent(givenController());
 
         //
         // We should have no errors
@@ -119,15 +122,17 @@ public class BugFreeCameraController {
     }
 
     @Test
-    public void initialize_with_configuration() {
-        Configuration c = CONTROLLER.getConfiguration();
+    public void initialize_with_configuration() throws Exception {
+        final CameraController C = givenController(false);
+        Configuration c = C.getConfiguration();
         then(c.getImageDir()).isEqualTo(IMAGE_DIR);
     }
 
     @Test
-    public void initialize_without_configuration() {
+    public void initialize_without_configuration() throws Exception {
+        final CameraController C = givenController(false);
         try {
-            CONTROLLER.initialize(null);
+            C.initialize(null);
             fail("the configuration object cannot be null");
         } catch (IllegalArgumentException e) {
             //
@@ -144,38 +149,34 @@ public class BugFreeCameraController {
      * @throws Exception
      */
     @Test
-    public void device_connect_and_disconnect() throws Exception {
-        setCameraStatus(true);
-        CONTROLLER.startCamera();
+    public void cammera_cannot_connect_twice() throws Exception {
+        final CameraController C = givenController();
 
-        LibusbJava.init(new CanonEOS1000D(false));
+        C.startCamera();
+
         try {
-            CONTROLLER.startCamera();
+            C.startCamera();
             fail("sanity check should fail at this point!");
-        } catch (PTPException e) {
+        } catch (CameraAlreadyConnectedException e) {
             //
             // Expected behaviour
             //
         }
-
-        LibusbJava.init(new CanonEOS1000D(true));
-        CONTROLLER.startCamera();
     }
-
 
     @Test
     public void connection_event() throws Exception {
-        setCameraStatus(true);
+        final CameraController C = givenController();
         ConnectedEventListener[] listeners = {
                 new ConnectedEventListener(),
                 new ConnectedEventListener()
         };
 
         for (ConnectedEventListener l: listeners) {
-            CONTROLLER.addCameraListener(l);
+            C.addCameraListener(l);
         }
 
-        fireCameraConnectionEvent();
+        C.startCamera(true); fireCameraConnectionEvent(C);
 
         for (ConnectedEventListener l: listeners) {
             then(l.device).isNotNull();
@@ -184,16 +185,15 @@ public class BugFreeCameraController {
 
     @Test
     public void start_camera_monitor() throws Exception {
-        setCameraStatus(false);
+        final CameraController C = givenController(false);
         ConnectedEventListener l = new ConnectedEventListener();
 
-        CONTROLLER.addCameraListener(l);
-        CONTROLLER.startCameraMonitor();
+        C.addCameraListener(l);
+        C.startCameraMonitor();
         Thread.sleep(100);
         then(l.device).isNull();
 
-        LibusbJava.init(new CanonEOS1000D(true));
-        Thread.sleep(100);
+        attachCamera(); Thread.sleep(100);
         then(l.device).isNotNull();
 
         //
@@ -206,13 +206,13 @@ public class BugFreeCameraController {
 
     @Test
     public void stop_camera_monitor() throws Exception {
-        setCameraStatus(true);
+        final CameraController C = givenController();
         ConnectedEventListener l = new ConnectedEventListener();
 
         //
         // By default the monitor does not run
         //
-        CONTROLLER.addCameraListener(l);
+        C.addCameraListener(l);
         Thread.sleep(100);
         then(l.device).isNull();
 
@@ -220,7 +220,7 @@ public class BugFreeCameraController {
         // Let's start the monitor now
         //
         l.device = null;
-        CONTROLLER.startCameraMonitor();
+        C.startCameraMonitor();
         Thread.sleep(100);
         then(l.device).isNotNull();
 
@@ -228,41 +228,48 @@ public class BugFreeCameraController {
         // Let's stop the monitor and detach the camera
         //
         l.device = null;
-        LibusbJava.init(new CanonEOS1000D(false));
-        CONTROLLER.stopCameraMonior();
+        C.stopCameraMonior();
         Thread.sleep(100);
         then(l.device).isNull();
     }
 
     @Test
     public void detect_valid_device() throws Exception  {
-        CanonEOS1000D devinfo = new CanonEOS1000D(true);
-        LibusbJava.init(devinfo);
-        CONTROLLER.initialize();
+        final CameraController C = givenController(false);
+
+        CanonEOS1000D devinfo = new CanonEOS1000D();
+        C.initialize(); C.startCameraMonitor();
 
         ConnectedEventListener l = new ConnectedEventListener();
-        CONTROLLER.addCameraListener(l);
-        fireCameraConnectionEvent();
+        C.addCameraListener(l);
 
-        then(l.device.getVendorId()).isEqualTo(devinfo.getVendorId());
-        then(l.device.getProductId()).isEqualTo(devinfo.getProductId());
+        attachCamera(); Thread.sleep(250);
+
+        UsbDeviceDescriptor dd = l.device.getUsbDeviceDescriptor();
+
+        then(dd.idVendor()).isEqualTo(devinfo.vendorId);
+        then(dd.idProduct()).isEqualTo(devinfo.productId);
     }
 
     @Test
     public void shoot_ok() throws Exception  {
-        CONTROLLER.startCamera();
-        CONTROLLER.shoot();
+        final CameraController C = givenController();
+
+        C.startCamera();
+        C.shoot();
 
         then(EosInitiator.invoked).contains("initiateCapture");
     }
 
     @Test
     public void shoot_ko() throws Exception {
+        final CameraController C = givenController();
+
         EosInitiator.shootError = true;
 
         try {
-            CONTROLLER.startCamera();
-            CONTROLLER.shoot();
+            C.startCamera();
+            C.shoot();
             fail("Error not thrown");
         } catch (PTPException e) {
             then(e.getErrorCode()).isEqualTo(Response.GeneralError);
@@ -271,11 +278,12 @@ public class BugFreeCameraController {
 
     @Test
     public void download_photo() throws Exception {
-        setCameraStatus(true);
-        CONTROLLER.startCamera();
+        final CameraController C = givenController();
+
+        C.startCamera();
 
         Photo photo = new Photo(IMAGE_NAME);
-        CONTROLLER.downloadPhoto(1, 256, photo, false);
+        C.downloadPhoto(1, 256, photo, false);
 
         then(EosInitiator.invoked).contains("getPartialObject");
         then(EosInitiator.invoked).contains("transferComplete");
@@ -285,7 +293,7 @@ public class BugFreeCameraController {
         then(photo.hasJpeg()).isTrue();
         then(photo.hasRaw()).isFalse();
 
-        CONTROLLER.downloadPhoto(1, 256, photo, true);
+        C.downloadPhoto(1, 256, photo, true);
         then(photo.hasRaw()).isTrue();
     }
 
@@ -302,8 +310,10 @@ public class BugFreeCameraController {
 
         EosInitiator.events.add(photo1); EosInitiator.events.add(photo2);
 
-        CONTROLLER.startCamera();
-        Photo[] photos = CONTROLLER.shootAndDownload();
+        final CameraController C = givenController();
+
+        C.startCamera();
+        Photo[] photos = C.shootAndDownload();
 
         then(EosInitiator.invoked).contains("initiateCapture");
         then(photos).hasSize(1);
@@ -318,20 +328,22 @@ public class BugFreeCameraController {
         File fjpg = new File(IMAGE_DIR, IMAGE_NAME_JPG);
         File fraw = new File(IMAGE_DIR, IMAGE_NAME_CR2);
 
-        CONTROLLER.savePhoto(photo);
+        final CameraController C = givenController();
+
+        C.savePhoto(photo);
         then(fjpg).doesNotExist();
         then(fraw).doesNotExist();
 
         photo.setJpegData(new byte[] {32});
 
-        CONTROLLER.savePhoto(photo);
+        C.savePhoto(photo);
         then(fjpg).exists();
         then(fjpg.length()).isEqualTo(1);
         then(fraw).doesNotExist();
 
         photo.setJpegData(new byte[] {32, 64});
         photo.setRawData(new byte[] {32, 64});
-        CONTROLLER.savePhoto(photo);
+        C.savePhoto(photo);
         then(fjpg.length()).isEqualTo(2);
         then(fraw).exists();
         then(fraw.length()).isEqualTo(2);
@@ -339,21 +351,27 @@ public class BugFreeCameraController {
 
     // --------------------------------------------------------- private methods
 
-    private void fireCameraConnectionEvent() throws Exception {
-        Method m = CONTROLLER.getClass().getDeclaredMethod("setConnected");
+    private CameraController givenController() throws Exception {
+        return givenController(true);
+    }
+
+    private CameraController givenController(boolean connected) throws Exception {
+        final CameraController C = new CameraController(CONFIG);
+
+        VirtualUSBServices usb = (VirtualUSBServices)UsbHostManager.getUsbServices();
+        usb.setConnectionStatus(connected);
+
+        return C;
+    }
+
+    private void fireCameraConnectionEvent(final CameraController C) throws Exception {
+        Method m = C.getClass().getDeclaredMethod("setConnected");
         m.setAccessible(true);
-        m.invoke(CONTROLLER);
+        m.invoke(C);
     }
 
-    private void setCameraStatus(boolean connected) throws Exception {
-        LibusbJava.init(new CanonEOS1000D(connected));
-        CONTROLLER.initialize();
+    private void attachCamera() throws Exception {
+        VirtualUSBServices usb = (VirtualUSBServices)UsbHostManager.getUsbServices();
+        usb.setConnectionStatus(true);
     }
-
-    private void setCameraStatus(boolean connected, Configuration c) throws Exception {
-        LibusbJava.init(new CanonEOS1000D(connected));
-        CONTROLLER.initialize(c);
-    }
-
-
 }

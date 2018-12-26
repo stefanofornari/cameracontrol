@@ -19,29 +19,20 @@
  * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301 USA.
  */
+package ste.cameracontrol.usb;
 
-package ste.cameracontrol;
-
-import javax.usb.UsbDevice;
+import javax.usb.UsbHostManager;
+import static org.assertj.core.api.BDDAssertions.then;
+import org.junit.Test;
 
 /**
- * Empty implementation for a CameraListener
  *
- * @author ste
  */
-public class BaseCameraListener implements CameraListener {
-    /**
-     * Called when the camera has been connected.
-     *
-     * @param device the USB device associated to the camera
-     */
-    public void cameraConnected(UsbDevice device) {}
+public class BugFreeVirtualUSB {
 
-    /**
-     * Called when the camera has been dis
-     * connected.
-     *
-     * @param device the USB device associated to the camera
-     */
-    public void cameraDisconnected(UsbDevice device) {}
+    @Test
+    public void load_virtual_usb_services() throws Exception {
+        then(UsbHostManager.getUsbServices()).isInstanceOf(VirtualUSBServices.class);
+    }
+
 }

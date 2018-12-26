@@ -21,11 +21,14 @@
  */
 package ste.cameracontrol;
 
-import ch.ntb.usb.LibusbJava;
-import ch.ntb.usb.UsbDevice;
-import ch.ntb.usb.devinf.CanonEOS1000D;
+import javax.usb.UsbDevice;
+import javax.usb.UsbDeviceDescriptor;
+import javax.usb.UsbException;
+import javax.usb.UsbHostManager;
 import static org.assertj.core.api.BDDAssertions.then;
 import org.junit.Test;
+import ste.cameracontrol.usb.CanonEOS1000D;
+import ste.cameracontrol.usb.VirtualUSBServices;
 
 /**
  *
@@ -33,34 +36,43 @@ import org.junit.Test;
  */
 public class BugFreeCameraConnection {
 
+    private final CanonEOS1000D INFO = new CanonEOS1000D();
+
     @Test
-    public void conected_ok() {
-        LibusbJava.init(new CanonEOS1000D());
+    public void conected_ok() throws UsbException {
+        givenUSBConnectionStatus(true);
 
-        CameraConnection connection = new CameraConnection();
-
-        then(connection.isConnected()).isTrue();
+        then(new CameraConnection().isConnected()).isTrue();
     }
 
     @Test
-    public void not_connected() {
-        LibusbJava.init(new CanonEOS1000D(false));
-
-        CameraConnection connection = new CameraConnection();
-
-        then(connection.isConnected()).isFalse();
+    public void not_connected() throws UsbException {
+        givenUSBConnectionStatus(false);
+        then(new CameraConnection().isConnected()).isFalse();
     }
 
     @Test
-    public void find_exising_device() {
-        CanonEOS1000D devinfo = new CanonEOS1000D(true);
-        LibusbJava.init(devinfo);
+    public void find_exising_device() throws UsbException {
+        givenUSBConnectionStatus(true);
 
         CameraConnection connection = new CameraConnection();
         UsbDevice dev = connection.findCamera();
 
-        then(dev.getDescriptor().getProductId()).isEqualTo(devinfo.getProductId());
-        then(dev.getDescriptor().getVendorId()).isEqualTo(devinfo.getVendorId());
+        UsbDeviceDescriptor dd = dev.getUsbDeviceDescriptor();
+
+        then(dd.idProduct()).isEqualTo(INFO.productId);
+        then(dd.idVendor()).isEqualTo(INFO.vendorId);
+    }
+
+    // --------------------------------------------------------- private methods
+
+    /*
+       Connect/Disconnect virtual USBs; please note this means parallelism must
+       not be at method level.
+    */
+    private void givenUSBConnectionStatus(boolean connected) throws UsbException {
+        VirtualUSBServices usb = (VirtualUSBServices) UsbHostManager.getUsbServices();
+        usb.setConnectionStatus(connected);
     }
 
 }

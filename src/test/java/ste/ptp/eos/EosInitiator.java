@@ -21,10 +21,11 @@
  */
 package ste.ptp.eos;
 
-import java.util.ArrayList;
-import ch.ntb.usb.Device;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
+import javax.usb.UsbDevice;
+import ste.cameracontrol.CameraAlreadyConnectedException;
 import ste.ptp.Data;
 import ste.ptp.NameFactory;
 import ste.ptp.OutputStreamData;
@@ -33,23 +34,26 @@ import ste.ptp.Response;
 
 /**
  * This is a Mock of EosInitiator
- * 
+ *
  * @author ste
  */
 public class EosInitiator extends NameFactory {
-    public static Device device = null;
+    public static UsbDevice device = null;
     public static boolean inSession = false;
     public static boolean shootError = false;
 
     public static ArrayList<String> invoked = new ArrayList<String>();
     public static ArrayList<EosEvent> events = new ArrayList<EosEvent>();
 
-    public EosInitiator(Device device) {
+    public EosInitiator(UsbDevice device) {
         this.device = device;
         inSession = false;
     }
 
-    public void openSession() {
+    public void openSession() throws CameraAlreadyConnectedException {
+        if (inSession) {
+            throw new CameraAlreadyConnectedException();
+        }
         invoked.add("openSession");
         inSession = true;
     }

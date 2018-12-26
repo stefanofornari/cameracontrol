@@ -22,9 +22,8 @@
 
 package ste.cameracontrol;
 
-import ch.ntb.usb.Device;
-import ch.ntb.usb.DeviceDatabase;
 import java.io.File;
+import javax.usb.UsbDevice;
 import ste.cameracontrol.ui.AboutDialog;
 import ste.cameracontrol.ui.CameraControlWindow;
 import ste.ptp.PTPBusyException;
@@ -37,11 +36,7 @@ public class CameraControlMain implements CameraListener {
 
     private CameraControlWindow window;
 
-    private DeviceDatabase deviceDatabase;
-
     public CameraControlMain() {
-        deviceDatabase = new DeviceDatabase();
-
         Configuration c = new Configuration();
         for (String property: System.getProperties().stringPropertyNames()) {
             if (property.startsWith("ste.")) {
@@ -65,7 +60,7 @@ public class CameraControlMain implements CameraListener {
         CameraController controller = CameraController.getInstance();
         controller.initialize(c);
         controller.addCameraListener(this);
-        
+
         window = new CameraControlWindow();
         window.setVisible(true);
 
@@ -73,7 +68,7 @@ public class CameraControlMain implements CameraListener {
     }
 
     @Override
-    public void cameraConnected(Device device) {
+    public void cameraConnected(UsbDevice device) {
         //
         // Soon after the USB device is detected, the system may keep the device
         // busy for a little while, Therefore we try 3 times before giving up.
@@ -82,14 +77,14 @@ public class CameraControlMain implements CameraListener {
         for (int i = 0; i<10; ++i) {
             try {
                 CameraController.getInstance().startCamera();
-                cameraName = device.getDisplayName();
+                cameraName = device.getManufacturerString();
                 window.enableCameraControls();
                 break;
             } catch (PTPBusyException e) {
                 try { Thread.sleep(2000); } catch (Exception ignore) {}
                 continue;
             } catch (Exception e) {
-                window.error(null, e); 
+                window.error(null, e);
                 break;
             }
         }
@@ -97,13 +92,13 @@ public class CameraControlMain implements CameraListener {
     }
 
     @Override
-    public void cameraDisconnected(Device device) {
+    public void cameraDisconnected(UsbDevice device) {
         window.setConnectionStatus(null);
         window.disableCameraControls();
     }
 
     // -------------------------------------------------------------------- main
-    
+
     public static void main(String[] args) throws Exception {
         for (String s: args) {
             if (s.equals("--about")) {
@@ -111,7 +106,7 @@ public class CameraControlMain implements CameraListener {
                 return;
             }
         }
-        
+
         new CameraControlMain();
     }
 

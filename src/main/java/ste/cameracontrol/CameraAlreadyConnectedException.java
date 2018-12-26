@@ -22,26 +22,19 @@
 
 package ste.cameracontrol;
 
-import javax.usb.UsbDevice;
+import ste.ptp.PTPException;
 
 /**
- * Empty implementation for a CameraListener
  *
  * @author ste
  */
-public class BaseCameraListener implements CameraListener {
-    /**
-     * Called when the camera has been connected.
-     *
-     * @param device the USB device associated to the camera
-     */
-    public void cameraConnected(UsbDevice device) {}
+public class CameraAlreadyConnectedException extends PTPException {
 
     /**
-     * Called when the camera has been dis
-     * connected.
-     *
-     * @param device the USB device associated to the camera
+     * Creates a new instance of <code>CameraAlreadyConnectedException1</code> without detail message.
      */
-    public void cameraDisconnected(UsbDevice device) {}
+    public CameraAlreadyConnectedException() {
+        super("Camera already connected");
+    }
+
 }

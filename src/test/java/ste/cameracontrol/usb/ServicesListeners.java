@@ -19,29 +19,38 @@
  * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301 USA.
  */
+package ste.cameracontrol.usb;
 
-package ste.cameracontrol;
+import javax.usb.event.UsbServicesEvent;
+import javax.usb.event.UsbServicesListener;
 
-import javax.usb.UsbDevice;
-
-/**
- * Empty implementation for a CameraListener
- *
- * @author ste
- */
-public class BaseCameraListener implements CameraListener {
-    /**
-     * Called when the camera has been connected.
-     *
-     * @param device the USB device associated to the camera
-     */
-    public void cameraConnected(UsbDevice device) {}
+public class ServicesListeners extends
+        EventListeners<UsbServicesListener> implements UsbServicesListener {
 
     /**
-     * Called when the camera has been dis
-     * connected.
-     *
-     * @param device the USB device associated to the camera
+     * Constructs a new USB services listener list.
      */
-    public void cameraDisconnected(UsbDevice device) {}
+    public ServicesListeners() {
+        super();
+    }
+
+    @Override
+    public UsbServicesListener[] toArray() {
+        return getListeners().toArray(
+                new UsbServicesListener[getListeners().size()]);
+    }
+
+    @Override
+    public void usbDeviceAttached(final UsbServicesEvent event) {
+        for (final UsbServicesListener listener : toArray()) {
+            listener.usbDeviceAttached(event);
+        }
+    }
+
+    @Override
+    public void usbDeviceDetached(final UsbServicesEvent event) {
+        for (final UsbServicesListener listener : toArray()) {
+            listener.usbDeviceDetached(event);
+        }
+    }
 }

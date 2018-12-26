@@ -22,7 +22,7 @@
 
 package ste.cameracontrol;
 
-import ch.ntb.usb.Device;
+import javax.usb.UsbDevice;
 
 /**
  *
@@ -31,15 +31,15 @@ import ch.ntb.usb.Device;
 public interface CameraListener {
     /**
      * Called when the camera has been connected.
-     * 
+     *
      * @param device the USB device associated to the camera
      */
-    public void cameraConnected(Device device);
+    public void cameraConnected(UsbDevice device);
 
     /**
      * Called when the camera has been disconnected.
      *
      * @param device the USB device associated to the camera
      */
-    public void cameraDisconnected(Device device);
+    public void cameraDisconnected(UsbDevice device);
 }

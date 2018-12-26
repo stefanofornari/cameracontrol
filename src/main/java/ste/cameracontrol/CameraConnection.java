@@ -22,11 +22,14 @@
 
 package ste.cameracontrol;
 
-import ch.ntb.usb.LibusbJava;
-import ch.ntb.usb.UsbBus;
-import ch.ntb.usb.UsbConfigDescriptor;
-import ch.ntb.usb.UsbDevice;
-import ch.ntb.usb.UsbInterface;
+import java.util.List;
+import javax.usb.UsbDevice;
+import javax.usb.UsbDeviceDescriptor;
+import javax.usb.UsbException;
+import javax.usb.UsbHostManager;
+import javax.usb.UsbHub;
+import javax.usb.UsbInterface;
+import org.usb4java.LibUsb;
 
 /**
  * This class represents the connection with a camera.
@@ -36,7 +39,6 @@ import ch.ntb.usb.UsbInterface;
 public class CameraConnection {
 
     public CameraConnection() {
-        LibusbJava.usb_init();
     }
 
     public boolean isConnected() {
@@ -44,37 +46,42 @@ public class CameraConnection {
     }
 
     public UsbDevice findCamera() {
-        LibusbJava.usb_find_busses();
-        LibusbJava.usb_find_devices();
+        try {
+            return findCamera(UsbHostManager.getUsbServices().getRootUsbHub());
+        } catch (UsbException x) {
+            x.printStackTrace();
+        }
 
-        UsbBus bus = LibusbJava.usb_get_busses();
-
-        return findCamera(bus);
+        return  null;
     }
 
     // --------------------------------------------------------- private methods
 
-    private UsbDevice findCamera(UsbBus bus) {
-        while (bus != null) {
-            UsbDevice device = bus.getDevices();
+    private UsbDevice findCamera(UsbHub root) {
+        for (UsbDevice device: (List<UsbDevice>) root.getAttachedUsbDevices()) {
+            UsbDeviceDescriptor desc = device.getUsbDeviceDescriptor();
+            System.out.println("Found on USB: idVendor: " + desc.idVendor() + ", idProduct: " + desc.idProduct());
+            //
+            // If the device is not configured there is nothing we can do about it...
+            //
+            if (device.isConfigured()) {
+                List ifaces = device.getActiveUsbConfiguration().getUsbInterfaces();
+                for (int i=0; i<ifaces.size(); i++) {
+                    /* All objects in the List are guaranteed to be UsbInterface objects. */
+                    UsbInterface iface = (UsbInterface)ifaces.get(i);
 
-            while (device != null) {
-                UsbConfigDescriptor[] descriptors = device.getConfig();
-
-                if (descriptors == null) {
-                    continue;
-                }
-
-                for (UsbConfigDescriptor descriptor: descriptors) {
-                    if (descriptor.getInterfaceByClass(UsbInterface.CLASS_IMAGE) != null) {
+                    /* See FindUsbDevice for notes about comparing unsigned numbers, note this is an unsigned byte. */
+                    if (iface.getUsbInterfaceDescriptor().bInterfaceClass() == LibUsb.CLASS_IMAGE) {
                         return device;
                     }
                 }
-
-                device = device.getNext();
             }
-
-            bus = bus.getNext();
+            if (device.isUsbHub()) {
+                device = findCamera((UsbHub) device);
+                if (device != null) {
+                    return device;
+		}
+            }
         }
 
         return null;

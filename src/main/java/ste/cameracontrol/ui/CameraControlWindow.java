@@ -27,9 +27,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import javax.imageio.ImageIO;
 import javax.swing.SwingWorker;
-
-import org.apache.commons.lang.StringUtils;
-
+import org.apache.commons.lang3.StringUtils;
 import ste.cameracontrol.CameraController;
 import ste.cameracontrol.Photo;
 
