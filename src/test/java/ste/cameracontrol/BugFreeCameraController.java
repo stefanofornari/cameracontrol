@@ -219,7 +219,7 @@ public class BugFreeCameraController {
         // Let's stop the monitor and detach the camera
         //
         l.device = null;
-        C.stopCameraMonior();
+        C.stopCameraMonitor();
         Thread.sleep(100);
         then(l.device).isNull();
     }

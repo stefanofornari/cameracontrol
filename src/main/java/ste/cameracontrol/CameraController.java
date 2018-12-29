@@ -161,7 +161,7 @@ public class CameraController implements Runnable {
     /**
      * Stops the camera detecting monitor.
      */
-    public synchronized void stopCameraMonior() {
+    public synchronized void stopCameraMonitor() {
         cameraMonitorActive = false;
     }
 
