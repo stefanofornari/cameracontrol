@@ -25,7 +25,6 @@ import java.awt.Image;
 import java.awt.event.ComponentAdapter;
 import java.io.IOException;
 import ste.cameracontrol.CameraController;
-
 import ste.cameracontrol.Photo;
 
 /**
@@ -48,9 +47,11 @@ public class ImageFrame extends BaseFrame {
     private ImagePanel jpegPanel;
 
     private Photo photo;
+    private CameraController camera;
 
     /** Creates new ImageFrame */
-    public ImageFrame(Photo photo) {
+    public ImageFrame(CameraController camera, Photo photo) {
+        this.camera = camera;
         this.photo = photo;
         initCustomComponents();
         setTitle(photo.getName());
@@ -259,7 +260,7 @@ public class ImageFrame extends BaseFrame {
 
     private void saveButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveButtonActionPerformed
         try {
-            CameraController.getInstance().savePhoto(photo);
+            camera.savePhoto(photo);
             saveButton.setIcon(getIcon(ICON_IMAGE_SAVED));
         } catch (IOException e) {
             error("Error saving " + photo.getName(), e);

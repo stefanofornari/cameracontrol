@@ -44,12 +44,9 @@ import ste.ptp.eos.EosEventFormat;
 import ste.ptp.eos.EosInitiator;
 
 /**
- * This class is the centralized controlled of the camera. It controls all
+ * This class is the centralized controller of the camera. It controls all
  * aspects of the interaction with the camera, from connectivity to picture
  * download and other controlling functions.
- *
- * CameraController implements the Singleton design patter, so that you can have
- * only one instance of the controller in your program.
  *
  * @author ste
  */
@@ -72,14 +69,9 @@ public class CameraController implements Runnable {
     private EosInitiator device;
 
     /**
-     * The singleton
-     */
-    private static final CameraController instance = new CameraController();
-
-    /**
      * Creates a new CameraController
      */
-    protected CameraController() {
+    public CameraController() {
         listeners = new ArrayList<CameraListener>();
         cameraMonitorActive = false;
     }
@@ -91,18 +83,9 @@ public class CameraController implements Runnable {
      *
      * @throws  IllegalArgumentException if configuration is null
      */
-    protected CameraController(Configuration configuration) {
+    public CameraController(Configuration configuration) {
         this();
         initialize(configuration);
-    }
-
-    /**
-     * Returns the singleton instance of CameraController
-     *
-     * @return the the singleton instance of CameraControllers
-     */
-    public static CameraController getInstance() {
-        return instance;
     }
 
     /**

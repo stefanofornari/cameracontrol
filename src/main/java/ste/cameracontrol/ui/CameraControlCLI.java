@@ -52,7 +52,7 @@ public class CameraControlCLI {
     static private boolean overwrite;
     static private int storageId;
 
-    static private CameraController controller = null;
+    static private CameraController camera = null;
 
     private static void usage(int status) {
         System.err.println("Usage: jphoto command [options]");
@@ -292,9 +292,8 @@ public class CameraControlCLI {
 
             Configuration c = new Configuration();
             c.setImageDir(directory.getAbsolutePath());
-            controller = CameraController.getInstance();
-            controller.initialize(c);
-            controller.startCamera();
+            camera = new CameraController(c);
+            camera.startCamera();
 
             for (String arg: line.getArgs()) {
 
@@ -372,21 +371,21 @@ public class CameraControlCLI {
 
     private static void devinfo()
     throws PTPException {
-        controller.devinfo();
+        camera.devinfo();
     }
 
     private static void getEvents()
     throws PTPException {
-        controller.dumpEvents();
+        camera.dumpEvents();
     }
 
 
     private static void shoot()
     throws IOException, PTPException {
-        Photo[] photos = controller.shootAndDownload();
+        Photo[] photos = camera.shootAndDownload();
 
         for (Photo photo: photos) {
-            controller.savePhoto(photo);
+            camera.savePhoto(photo);
         }
     }
 }

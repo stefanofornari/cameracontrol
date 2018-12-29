@@ -40,9 +40,12 @@ public class CameraControlWindow extends BaseFrame {
     public static final String ICON_CAMERA_CONNECT    = "images/camera-connect-24x24.png";
     public static final String ICON_CAMERA_DISCONNECT = "images/camera-disconnect-24x24.png";
 
+    private CameraController camera;
+
     /** Creates new form CameraControlWindow */
-    public CameraControlWindow() {
+    public CameraControlWindow(CameraController camera) {
         initComponents();
+        this.camera = camera;
         setLocationRelativeTo(null);
         setStatus("");
     }
@@ -148,14 +151,14 @@ public class CameraControlWindow extends BaseFrame {
                 setStatus("Wait...");
                 Photo photos[] = null;
                 try {
-                    photos = CameraController.getInstance().shootAndDownload();
+                    photos = camera.shootAndDownload();
                 } catch (Exception e) {
                     error(e.getMessage(), e);
                     return null;
                 }
 
                 for (Photo photo: photos) {
-                    new ImageFrame(photo).setVisible(true);
+                    new ImageFrame(camera, photo).setVisible(true);
                 }
                 return null;
             }
@@ -186,7 +189,7 @@ public class CameraControlWindow extends BaseFrame {
             //
             e.printStackTrace();
         }
-        ImageFrame f = new ImageFrame(photo);
+        ImageFrame f = new ImageFrame(camera, photo);
         f.setVisible(true);
     }//GEN-LAST:event_jMenuItem1ActionPerformed
 
@@ -200,7 +203,7 @@ public class CameraControlWindow extends BaseFrame {
     public static void main(String args[]) {
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new CameraControlWindow().setVisible(true);
+                new CameraControlWindow(new CameraController()).setVisible(true);
             }
         });
     }

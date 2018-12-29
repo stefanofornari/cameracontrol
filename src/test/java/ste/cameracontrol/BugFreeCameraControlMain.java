@@ -29,6 +29,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.ProvideSystemProperty;
 import ste.cameracontrol.ui.CameraControlWindow;
+import ste.xtest.reflect.PrivateAccess;
 
 /**
  *
@@ -42,7 +43,8 @@ public class BugFreeCameraControlMain {
     @Test
     public void controller_configuration() throws Exception {
         CameraControlMain cameraControl = new CameraControlMain();
-        Configuration c = CameraController.getInstance().getConfiguration();
+        CameraController camera = (CameraController)PrivateAccess.getInstanceValue(cameraControl, "camera");
+        Configuration c = camera.getConfiguration();
         then(c.getImageDir()).isNotNull();
         then((new File(c.getImageDir()))).exists();
     }

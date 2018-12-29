@@ -26,14 +26,14 @@ import ste.cameracontrol.CameraController;
 
 /**
  * This is a mock of the original class for testing purposes.
- * 
+ *
  * @author ste
  */
 public class CameraControlWindow {
     public String status;
     public boolean cameraControlsEnabled;
 
-    public CameraControlWindow() {
+    public CameraControlWindow(CameraController c) {
     }
 
     public void setVisible(boolean visible) {}

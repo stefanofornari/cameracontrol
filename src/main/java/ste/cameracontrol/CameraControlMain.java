@@ -35,6 +35,7 @@ import ste.ptp.PTPBusyException;
 public class CameraControlMain implements CameraListener {
 
     private CameraControlWindow window;
+    private CameraController camera;
 
     public CameraControlMain() {
         Configuration c = new Configuration();
@@ -57,14 +58,13 @@ public class CameraControlMain implements CameraListener {
             imageDir.mkdirs();
         }
 
-        CameraController controller = CameraController.getInstance();
-        controller.initialize(c);
-        controller.addCameraListener(this);
+        camera = new CameraController(c);
+        camera.addCameraListener(this);
 
-        window = new CameraControlWindow();
+        window = new CameraControlWindow(camera);
         window.setVisible(true);
 
-        controller.startCameraMonitor();
+        camera.startCameraMonitor();
     }
 
     @Override
@@ -76,7 +76,7 @@ public class CameraControlMain implements CameraListener {
         String cameraName = null;
         for (int i = 0; i<10; ++i) {
             try {
-                CameraController.getInstance().startCamera();
+                camera.startCamera();
                 cameraName = device.getManufacturerString();
                 window.enableCameraControls();
                 break;

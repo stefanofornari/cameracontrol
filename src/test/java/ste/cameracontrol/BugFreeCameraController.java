@@ -91,15 +91,6 @@ public class BugFreeCameraController {
     }
 
     @Test
-    public void singleton() throws Exception {
-        CameraController c1 = CameraController.getInstance();
-        CameraController c2 = CameraController.getInstance();
-
-        then(c1).isNotNull();
-        then(c1).isSameAs(c2);
-    }
-
-    @Test
     public void camera_connected() throws Exception {
         final CameraController C = givenController();
 

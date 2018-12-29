@@ -70,26 +70,12 @@
             <version>1.19.0</version>
             <scope>test</scope>
         </dependency>
-
-        <!--
-             TEST
-        -->
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.12</version>
-        </dependency>
-        <dependency>
-            <groupId>org.assertj</groupId>
-            <artifactId>assertj-core</artifactId>
-            <version>3.5.2</version>
+            <groupId>com.github.stefanofornari</groupId>
+            <artifactId>xtest</artifactId>
+            <version>2.1.1-SNAPSHOT</version>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.github.stefanbirkner</groupId>
-            <artifactId>system-rules</artifactId>
-            <version>1.19.0</version>
-            <scope>test</scope>
+            <type>jar</type>
         </dependency>
     </dependencies>
 
