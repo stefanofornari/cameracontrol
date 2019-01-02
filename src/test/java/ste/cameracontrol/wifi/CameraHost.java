@@ -28,6 +28,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
+import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.input.TeeInputStream;
 import ste.ptp.ip.Introduction;
 import ste.ptp.ip.PTPIPContainer;
@@ -37,7 +38,7 @@ import ste.ptp.ip.PTPIPContainer;
  */
 public class CameraHost implements Runnable {
 
-    public String acceptedClientId;
+    public byte[] acceptedClientId;
     public ByteArrayOutputStream buffer = new ByteArrayOutputStream();
 
     public List<PTPIPContainer> packets = new ArrayList<>();
@@ -102,8 +103,9 @@ public class CameraHost implements Runnable {
         //
         // read guid
         //
-        byte[] guid = new byte[] { (byte)is.read(), (byte)is.read() };
-        System.out.println("introduction - guid: " + new String(guid));
+        byte[] guid = new byte[16];
+        is.read(guid);
+        System.out.println("introduction - guid: " + Hex.encodeHexString(guid));
 
         //
         // read hostname + UTF16(0) (max 256 chars)
@@ -126,6 +128,6 @@ public class CameraHost implements Runnable {
         is.read(version);
         System.out.println("introduction - version: " + version[0] + "." + version[1]);
 
-        return new Introduction(new String(guid), hostname.toString(), version);
+        return new Introduction(guid, hostname.toString(), version);
     }
 }

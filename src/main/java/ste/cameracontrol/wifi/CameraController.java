@@ -37,8 +37,14 @@ public class CameraController {
     public static final int TIMEOUT_CONNECT = 2000;
     public static final int PORT = 15740;
 
-    public static final String CLIENT_ID = "cc"; // TODO to be turned into a 16 bytes GUID
     public static final String CLIENT_NAME = "Camera Control";
+    // MD5(CLIENT_NAME);
+    public static final byte[] CLIENT_ID = new byte[] {
+            (byte)0x69, (byte)0x61, (byte)0x75, (byte)0x16,
+            (byte)0x6c, (byte)0x22, (byte)0x82, (byte)0xe8,
+            (byte)0x95, (byte)0xf3, (byte)0x60, (byte)0x30,
+            (byte)0xbd, (byte)0x25, (byte)0x56, (byte)0x8f
+    };
     public static final byte[] CLIENT_VERSION = new byte[] {0, 1};
 
     private Socket socket;

@@ -60,7 +60,7 @@ public class BugFreeTCPInitialization {
 
     @Test
     public void start_tcp_session_handshake_ok() throws Exception {
-        CameraHost host = givenStartedCamera("caco");
+        CameraHost host = givenStartedCamera(CameraController.CLIENT_ID);
 
         CameraController controller = new CameraController();
         controller.connect("localhost");
@@ -73,12 +73,12 @@ public class BugFreeTCPInitialization {
         });
 
         PTPIPContainer packet = host.packets.get(0);
-        then(packet.size).isEqualTo(44);
+        then(packet.size).isEqualTo(58);
         then(packet.type).isEqualTo(1);
         then(packet.payload).isInstanceOf(Introduction.class);
 
         Introduction i = (Introduction)packet.payload;
-        then(i.guid).isEqualTo(CameraController.CLIENT_ID);
+        then(i.guid).containsExactly(CameraController.CLIENT_ID);
         then(i.hostname).isEqualTo(CameraController.CLIENT_NAME);
         then(i.version).containsExactly(CameraController.CLIENT_VERSION);
     }
@@ -90,7 +90,7 @@ public class BugFreeTCPInitialization {
         return givenStartedCamera(CameraController.CLIENT_ID);
     }
 
-    private CameraHost givenStartedCamera(String clientId) throws Exception {
+    private CameraHost givenStartedCamera(byte[] clientId) throws Exception {
         CameraHost camera = new CameraHost();
         camera.acceptedClientId = clientId;
 
