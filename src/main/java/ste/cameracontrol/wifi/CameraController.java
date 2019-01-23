@@ -22,12 +22,15 @@
 package ste.cameracontrol.wifi;
 
 import java.io.IOException;
-import java.io.OutputStream;
+import java.net.ConnectException;
 import java.net.InetAddress;
 import java.net.Socket;
 import ste.cameracontrol.CameraNotAvailableException;
-import ste.ptp.ip.Introduction;
+import ste.ptp.ip.InitCommandAcknowledge;
+import ste.ptp.ip.InitCommandRequest;
 import ste.ptp.ip.PTPIPContainer;
+import ste.ptp.ip.PacketInputStream;
+import ste.ptp.ip.PayloadWriter;
 
 /**
  * See http://www.gphoto.org/doc/ptpip.php for some information on PTPIP protocol
@@ -45,25 +48,39 @@ public class CameraController {
             (byte)0x95, (byte)0xf3, (byte)0x60, (byte)0x30,
             (byte)0xbd, (byte)0x25, (byte)0x56, (byte)0x8f
     };
-    public static final byte[] CLIENT_VERSION = new byte[] {0, 1};
+    public static final String CLIENT_VERSION = "1.0";
 
     private Socket socket;
 
+    private byte[] cameraId;
+    private String cameraName;
+
     public void connect(String host) throws CameraNotAvailableException {
-        OutputStream out = null;
         try {
             if (InetAddress.getByName(host).isReachable(TIMEOUT_CONNECT)) {
                 socket = new Socket(host, PORT);
-                out = socket.getOutputStream();
 
-                out.write(new PTPIPContainer(new Introduction(CLIENT_ID, CLIENT_NAME, CLIENT_VERSION)).toByteArray());
+                request(
+                    new PTPIPContainer(new InitCommandRequest(CLIENT_ID, CLIENT_NAME, CLIENT_VERSION))
+                );
+
+                PTPIPContainer response = response();
+
+                InitCommandAcknowledge payload = (InitCommandAcknowledge)response.payload;
+                cameraId = payload.guid;
+                cameraName = payload.hostname;
 
                 return;
             }
+        } catch (ConnectException x) {
+            //
+            // nothing to do, a CameranNotAvailableException will be thrown
+            //
         } catch (IOException x) {
+            x.printStackTrace();
         } finally {
-            if (out != null) {
-                try {out.close();} catch (IOException x) {};
+            if (socket != null) {
+                try {socket.close();} catch (IOException x) {};
             }
         }
 
@@ -74,4 +91,41 @@ public class CameraController {
         return ((socket != null) && socket.isConnected());
     }
 
+    public String getCameraName() {
+        return cameraName;
+    }
+
+    public byte[] getCameraGUID() {
+        return cameraId;
+    }
+
+    public String getCameraSwVersion() {
+        return "1.0";
+    }
+
+    public int getConnectionNumber() {
+        return 0x00000001;
+    }
+
+    // --------------------------------------------------------- private methods
+
+    private void request(PTPIPContainer packet) throws IOException {
+        new PayloadWriter().write(socket.getOutputStream(), packet);
+    }
+
+    private PTPIPContainer response() throws IOException {
+        PacketInputStream in = new PacketInputStream(socket.getInputStream());
+
+        PTPIPContainer ret = new PTPIPContainer();
+        int size = in.readLEInt();
+        int type = in.readLEInt();
+
+        System.out.println("size: " + size);
+        System.out.println("type: " + type);
+
+        InitCommandAcknowledge ack = in.readInitCommandAcknowledge();
+        cameraId = ack.guid;
+
+        return new PTPIPContainer(ack);
+    }
 }

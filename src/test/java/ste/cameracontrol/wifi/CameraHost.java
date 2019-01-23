@@ -30,58 +30,93 @@ import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.input.TeeInputStream;
-import ste.ptp.ip.Introduction;
+import ste.ptp.ip.InitCommandAcknowledge;
+import ste.ptp.ip.InitCommandRequest;
 import ste.ptp.ip.PTPIPContainer;
+import ste.ptp.ip.PacketInputStream;
+import ste.ptp.ip.PayloadWriter;
 
 /**
  *
  */
 public class CameraHost implements Runnable {
 
+    private static final byte[] GUID = new byte[] {
+        (byte)0x00, (byte)0x01, (byte)0x02, (byte)0x03,
+        (byte)0x04, (byte)0x05, (byte)0x06, (byte)0x07,
+        (byte)0x08, (byte)0x09, (byte)0x0a, (byte)0x0b,
+        (byte)0x0c, (byte)0x0d, (byte)0x0e, (byte)0x0f
+    };
+    private static final String NAME = "MYHOST";
+
     public byte[] acceptedClientId;
+    public String name;
+    public byte[] cameraId;
+
+
     public ByteArrayOutputStream buffer = new ByteArrayOutputStream();
 
     public List<PTPIPContainer> packets = new ArrayList<>();
 
     private Thread worker;
+    private ServerSocket server;
 
     public boolean isOn() {
-        return worker.isAlive();
+        return worker.isAlive() && (server != null);
     }
 
     @Override
     public void run() {
+        System.out.println("starting worker " + this + " " + Thread.currentThread());
         try {
-            ServerSocket ss = new ServerSocket(15740);
-            Socket s = ss.accept();
+            server = new ServerSocket(15740);
+            Socket s = server.accept();
 
-            InputStream in = new TeeInputStream(s.getInputStream(), buffer);
+            PacketInputStream in = new PacketInputStream(new TeeInputStream(s.getInputStream(), buffer));
 
             PTPIPContainer packet = new PTPIPContainer();
+
+            // ---
+            // Introduction
+            //
+
+            //
+            // INIT COMMAND REQUEST
+            //
 
             //
             // length of the packet
             //
-            packet.size = readLittleEndianInt(in);
-            System.out.println("packet length: " + packet.size);
+            int size = in.readLEInt();
+            System.out.println("packet length: " + size);
 
             //
             // type of the packet
             //
-            packet.type = readLittleEndianInt(in);
+            packet.type = in.readLEInt();
             System.out.println("packet type: " + packet.type);
 
             //
             // read introduction payload
+            // TODO: to move in PacketInputStream
             //
             packet.payload = readIntroduction(in);
 
             packets.add(packet);
 
+            //
+            // INIT_COMMAND ACNOWLEDGE
+            //
+            new PayloadWriter().write(
+                s.getOutputStream(),
+                new PTPIPContainer(new InitCommandAcknowledge(0x01020304, cameraId, name, "1.0"))
+            );
 
+            s.close(); server.close();
         } catch (IOException x) {
             x.printStackTrace();
         }
+        System.out.println("worker done " + this + " " + Thread.currentThread());
     }
 
     public void start() {
@@ -91,14 +126,7 @@ public class CameraHost implements Runnable {
 
     // --------------------------------------------------------- private methods
 
-    private int readLittleEndianInt(InputStream is) throws IOException {
-        return (is.read() & 0xff)
-             | ((is.read() & 0xff)<<8)
-             | ((is.read() & 0xff)<<16)
-             | ((is.read() & 0xff)<<24);
-    }
-
-    private Introduction readIntroduction(InputStream is) throws IOException {
+    private InitCommandRequest readIntroduction(InputStream is) throws IOException {
 
         //
         // read guid
@@ -124,10 +152,10 @@ public class CameraHost implements Runnable {
         //
         // client version number
         //
-        byte[] version = new byte[2];
-        is.read(version);
-        System.out.println("introduction - version: " + version[0] + "." + version[1]);
+        int minor = is.read() | (is.read() << 8);
+        int major = is.read() | (is.read() << 8);
+        System.out.println("introduction - version: " + major + "." + minor);
 
-        return new Introduction(guid, hostname.toString(), version);
+        return new InitCommandRequest(guid, hostname.toString(), major + "." + minor);
     }
 }
