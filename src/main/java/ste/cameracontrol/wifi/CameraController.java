@@ -25,12 +25,16 @@ import java.io.IOException;
 import java.net.ConnectException;
 import java.net.InetAddress;
 import java.net.Socket;
+import ste.cameracontrol.CameraConnectionException;
 import ste.cameracontrol.CameraNotAvailableException;
+import ste.ptp.ip.Constants;
 import ste.ptp.ip.InitCommandAcknowledge;
 import ste.ptp.ip.InitCommandRequest;
+import ste.ptp.ip.InitError;
+import ste.ptp.ip.InitEventRequest;
 import ste.ptp.ip.PTPIPContainer;
 import ste.ptp.ip.PacketInputStream;
-import ste.ptp.ip.PayloadWriter;
+import ste.ptp.ip.PacketOutputStream;
 
 /**
  * See http://www.gphoto.org/doc/ptpip.php for some information on PTPIP protocol
@@ -53,9 +57,12 @@ public class CameraController {
     private Socket socket;
 
     private byte[] cameraId;
+    private int    sessionId;
     private String cameraName;
+    private String cameraSwVersion;
 
-    public void connect(String host) throws CameraNotAvailableException {
+    public void connect(String host)
+    throws CameraNotAvailableException, CameraConnectionException {
         try {
             if (InetAddress.getByName(host).isReachable(TIMEOUT_CONNECT)) {
                 socket = new Socket(host, PORT);
@@ -65,10 +72,17 @@ public class CameraController {
                 );
 
                 PTPIPContainer response = response();
+                if (response.payload instanceof InitCommandAcknowledge) {
+                    InitCommandAcknowledge payload = (InitCommandAcknowledge)response.payload;
+                    cameraId = payload.guid;
+                    cameraName = payload.hostname;
+                    sessionId = payload.sessionId;
+                    cameraSwVersion = payload.version;
 
-                InitCommandAcknowledge payload = (InitCommandAcknowledge)response.payload;
-                cameraId = payload.guid;
-                cameraName = payload.hostname;
+                    request(
+                        new PTPIPContainer(new InitEventRequest(sessionId))
+                    );
+                }
 
                 return;
             }
@@ -100,20 +114,22 @@ public class CameraController {
     }
 
     public String getCameraSwVersion() {
-        return "1.0";
+        return cameraSwVersion;
     }
 
-    public int getConnectionNumber() {
-        return 0x00000001;
+    public int getSessionId() {
+        return sessionId;
     }
 
     // --------------------------------------------------------- private methods
 
     private void request(PTPIPContainer packet) throws IOException {
-        new PayloadWriter().write(socket.getOutputStream(), packet);
+        PacketOutputStream out = new PacketOutputStream(socket.getOutputStream());
+
+        out.write(packet); out.flush();
     }
 
-    private PTPIPContainer response() throws IOException {
+    private PTPIPContainer response() throws IOException, CameraConnectionException {
         PacketInputStream in = new PacketInputStream(socket.getInputStream());
 
         PTPIPContainer ret = new PTPIPContainer();
@@ -123,9 +139,16 @@ public class CameraController {
         System.out.println("size: " + size);
         System.out.println("type: " + type);
 
-        InitCommandAcknowledge ack = in.readInitCommandAcknowledge();
-        cameraId = ack.guid;
+        if (type == Constants.PacketType.INIT_COMMAND_ACK.type()) {
+            InitCommandAcknowledge ack = in.readInitCommandAcknowledge();
+            cameraId = ack.guid;
 
-        return new PTPIPContainer(ack);
+            return new PTPIPContainer(ack);
+        } else if (type == Constants.PacketType.INIT_COMMAND_FAIL.type()) {
+            InitError err = in.readInitError();
+            throw new CameraConnectionException(err.error);
+        }
+
+        throw new IOException("protocol error (type:  " + type + ")");
     }
 }

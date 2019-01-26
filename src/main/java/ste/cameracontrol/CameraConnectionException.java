@@ -28,13 +28,13 @@ import ste.ptp.PTPException;
  *
  * @author ste
  */
-public class CameraNotAvailableException extends PTPException {
+public class CameraConnectionException extends PTPException {
 
     /**
      * Creates a new instance of <code>CameraBusyException</code> with default detail message.
      */
-    public CameraNotAvailableException() {
-        super("Camera not available");
+    public CameraConnectionException(int code) {
+        super(String.format("Camera connection error %#010x", code), code);
     }
 
 }

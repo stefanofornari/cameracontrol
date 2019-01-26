@@ -30,11 +30,13 @@ import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.input.TeeInputStream;
+import ste.ptp.ip.Constants;
 import ste.ptp.ip.InitCommandAcknowledge;
 import ste.ptp.ip.InitCommandRequest;
+import ste.ptp.ip.InitError;
 import ste.ptp.ip.PTPIPContainer;
 import ste.ptp.ip.PacketInputStream;
-import ste.ptp.ip.PayloadWriter;
+import ste.ptp.ip.PacketOutputStream;
 
 /**
  *
@@ -52,6 +54,9 @@ public class CameraHost implements Runnable {
     public byte[] acceptedClientId;
     public String name;
     public byte[] cameraId;
+    public int    error;
+    public int    sessionId;
+    public String version;
 
 
     public ByteArrayOutputStream buffer = new ByteArrayOutputStream();
@@ -104,13 +109,30 @@ public class CameraHost implements Runnable {
 
             packets.add(packet);
 
-            //
-            // INIT_COMMAND ACNOWLEDGE
-            //
-            new PayloadWriter().write(
-                s.getOutputStream(),
-                new PTPIPContainer(new InitCommandAcknowledge(0x01020304, cameraId, name, "1.0"))
-            );
+            if (error == 0) {
+                //
+                // INIT_COMMAND ACNOWLEDGE
+                //
+                ++sessionId;
+                new PacketOutputStream(s.getOutputStream()).write(
+                    new PTPIPContainer(new InitCommandAcknowledge(sessionId, cameraId, name, version))
+                );
+
+                packet = new PTPIPContainer();
+                size = in.readLEInt();  // size
+                System.out.println("size: " + size);
+                packet.type = in.readLEInt();
+                System.out.println("size: " + packet.type);
+                if (packet.type == Constants.PacketType.INIT_EVENT_REQUEST.type()) {
+                    packet.payload = in.readInitEventRequest();
+                    packets.add(packet);
+                }
+            } else {
+                //
+                // Error packate
+                //
+                new PacketOutputStream(s.getOutputStream()).write(new PTPIPContainer(new InitError(error)));
+            }
 
             s.close(); server.close();
         } catch (IOException x) {
