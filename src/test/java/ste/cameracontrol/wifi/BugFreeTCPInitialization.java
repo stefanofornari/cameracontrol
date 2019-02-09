@@ -24,8 +24,8 @@ package ste.cameracontrol.wifi;
 import static org.assertj.core.api.Assertions.fail;
 import static org.assertj.core.api.BDDAssertions.then;
 import org.junit.Test;
-import ste.cameracontrol.CameraConnectionException;
 import ste.cameracontrol.CameraNotAvailableException;
+import ste.ptp.PTPException;
 import ste.ptp.ip.Constants;
 import ste.ptp.ip.InitCommandRequest;
 import ste.ptp.ip.InitEventRequest;
@@ -39,23 +39,11 @@ import ste.xtest.concurrent.WaitFor;
  */
 public class BugFreeTCPInitialization {
 
-    public static final byte[] GUID1 = new byte[] {
-        (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
-        (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
-        (byte)0x00, (byte)0x01, (byte)0xf4, (byte)0xa9,
-        (byte)0x97, (byte)0xfa, (byte)0x6a, (byte)0xac
-    };
-    public static final byte[] GUID2 = new byte[] {
-        (byte)0x01, (byte)0x02, (byte)0x03, (byte)0x04,
-        (byte)0x10, (byte)0x20, (byte)0x30, (byte)0x40,
-        (byte)0x0a, (byte)0x0b, (byte)0x0c, (byte)0x0d,
-        (byte)0xa0, (byte)0xb0, (byte)0xc0, (byte)0xd0
-    };
 
 
     @Test
     public void start_tcp_session_ok() throws Exception {
-        givenStartedCamera();
+        CameraUtils.givenStartedCamera();
 
         CameraController controller = new CameraController();
         controller.connect("localhost");
@@ -76,8 +64,8 @@ public class BugFreeTCPInitialization {
     }
 
     @Test
-    public void start_tcp_session_handshake_ok() throws Exception {
-        final CameraHost HOST1 = givenStartedCamera("EOS4000D", CameraController.CLIENT_ID, GUID1);
+    public void start_ptpip_session_handshake_ok() throws Exception {
+        final CameraHost HOST1 = CameraUtils.givenStartedCamera("EOS4000D", CameraController.CLIENT_ID, CameraUtils.GUID1);
 
         CameraController controller = new CameraController();
         controller.connect("localhost");
@@ -115,14 +103,14 @@ public class BugFreeTCPInitialization {
         //
         then(controller.getSessionId()).isEqualTo(0x00000001);
         then(controller.getCameraName()).isEqualTo("EOS4000D");
-        then(controller.getCameraGUID()).containsExactly(GUID1);
+        then(controller.getCameraGUID()).containsExactly(CameraUtils.GUID1);
         then(controller.getCameraSwVersion()).isEqualTo("1.0");
 
         //
         // Another camera...
         //
 
-        final CameraHost HOST2 = givenStartedCamera("EOS1000D", CameraController.CLIENT_ID, GUID2);
+        final CameraHost HOST2 = CameraUtils.givenStartedCamera("EOS1000D", CameraController.CLIENT_ID, CameraUtils.GUID2);
         HOST2.sessionId = 10;
         HOST2.version = "1.1";
 
@@ -154,13 +142,13 @@ public class BugFreeTCPInitialization {
         //
         then(controller.getSessionId()).isEqualTo(11);
         then(controller.getCameraName()).isEqualTo("EOS1000D");
-        then(controller.getCameraGUID()).containsExactly(GUID2);
+        then(controller.getCameraGUID()).containsExactly(CameraUtils.GUID2);
         then(controller.getCameraSwVersion()).isEqualTo("1.1");
     }
 
     @Test
     public void connection_data_when_no_camera_is_connected() throws Exception {
-        givenNoCamera();
+        CameraUtils.givenNoCamera();
 
         CameraController controller = new CameraController();
 
@@ -168,70 +156,55 @@ public class BugFreeTCPInitialization {
             controller.connect("localhost");
             fail("missing error");
         } catch (CameraNotAvailableException x) {
-            then(x).hasMessage("Camera not available");
+            then(x).hasMessage("0x00002000 camera not available");
         }
     }
 
     @Test(timeout = 5000)
-    public void connection_error() throws Exception {
-        givenCameraWithError(0x01020304);
+    public void command_initialization_error() throws Exception {
+        CameraUtils.givenCameraWithError1(0x01020304);
 
         CameraController controller = new CameraController();
         try {
             controller.connect("localhost");
             fail("missing error");
-        } catch (CameraConnectionException x) {
+        } catch (PTPException x) {
             x.printStackTrace();
-            then(x).hasMessage("Camera connection error 0x01020304");
+            then(x).hasMessage("0x01020304 command request error");
         }
 
-        givenCameraWithError(0x0a0b0c0d);
+        CameraUtils.givenCameraWithError1(0x0a0b0c0d);
 
         controller = new CameraController();
         try {
             controller.connect("localhost");
             fail("missing error");
-        } catch (CameraConnectionException x) {
+        } catch (PTPException x) {
             x.printStackTrace();
-            then(x).hasMessage("Camera connection error 0x0a0b0c0d");
+            then(x).hasMessage("0x0a0b0c0d command request error");
         }
     }
 
-    // --------------------------------------------------------- private methods
+    @Test(timeout = 5000)
+    public void event_initialization_error() throws Exception {
+        CameraUtils.givenCameraWithError2(0x01020304);
 
+        CameraController controller = new CameraController();
+        try {
+            controller.connect("localhost");
+            fail("missing error");
+        } catch (PTPException x) {
+            then(x).hasMessage("0x01020304 event request error");
+        }
 
-    private CameraHost givenStartedCamera() throws Exception {
-        return givenStartedCamera("EOS4000D", CameraController.CLIENT_ID, GUID1);
-    }
+        CameraUtils.givenCameraWithError2(0x0a0b0c0d);
 
-    private CameraHost givenStartedCamera(String name, byte[] clientId, byte[] guid) throws Exception {
-        CameraHost camera = new CameraHost();
-        camera.acceptedClientId = clientId;
-        camera.name = name;
-        camera.cameraId = guid;
-        camera.version = "1.0";
-
-        camera.start();
-
-        new WaitFor(1000, new Condition() {
-            @Override
-            public boolean check() {
-                return camera.isOn();
-            }
-        });
-
-        return camera;
-    }
-
-    private CameraHost givenCameraWithError(int error) throws Exception {
-        final CameraHost camera = givenStartedCamera("EOS4000D", CameraController.CLIENT_ID, GUID1);
-
-        camera.error = error;
-
-        return camera;
-    }
-
-    private CameraHost givenNoCamera() throws Exception {
-        return new CameraHost();
+        controller = new CameraController();
+        try {
+            controller.connect("localhost");
+            fail("missing error");
+        } catch (PTPException x) {
+            then(x).hasMessage("0x0a0b0c0d event request error");
+        }
     }
 }

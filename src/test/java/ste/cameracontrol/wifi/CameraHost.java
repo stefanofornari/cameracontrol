@@ -34,6 +34,7 @@ import ste.ptp.ip.Constants;
 import ste.ptp.ip.InitCommandAcknowledge;
 import ste.ptp.ip.InitCommandRequest;
 import ste.ptp.ip.InitError;
+import ste.ptp.ip.InitEventAcknowledge;
 import ste.ptp.ip.PTPIPContainer;
 import ste.ptp.ip.PacketInputStream;
 import ste.ptp.ip.PacketOutputStream;
@@ -54,7 +55,7 @@ public class CameraHost implements Runnable {
     public byte[] acceptedClientId;
     public String name;
     public byte[] cameraId;
-    public int    error;
+    public int    error1, error2;
     public int    sessionId;
     public String version;
 
@@ -78,6 +79,7 @@ public class CameraHost implements Runnable {
             Socket s = server.accept();
 
             PacketInputStream in = new PacketInputStream(new TeeInputStream(s.getInputStream(), buffer));
+            PacketOutputStream out = new PacketOutputStream(s.getOutputStream());
 
             PTPIPContainer packet = new PTPIPContainer();
 
@@ -109,12 +111,12 @@ public class CameraHost implements Runnable {
 
             packets.add(packet);
 
-            if (error == 0) {
+            if (error1 == 0) {
                 //
                 // INIT_COMMAND ACNOWLEDGE
                 //
                 ++sessionId;
-                new PacketOutputStream(s.getOutputStream()).write(
+                out.write(
                     new PTPIPContainer(new InitCommandAcknowledge(sessionId, cameraId, name, version))
                 );
 
@@ -126,12 +128,21 @@ public class CameraHost implements Runnable {
                 if (packet.type == Constants.PacketType.INIT_EVENT_REQUEST.type()) {
                     packet.payload = in.readInitEventRequest();
                     packets.add(packet);
+
+                    if (error2 == 0) {
+                        out.write(new PTPIPContainer(new InitEventAcknowledge()));
+                    } else {
+                        //
+                        // Error packet
+                        //
+                        out.write(new PTPIPContainer(new InitError(error2)));
+                    }
                 }
             } else {
                 //
-                // Error packate
+                // Error packet
                 //
-                new PacketOutputStream(s.getOutputStream()).write(new PTPIPContainer(new InitError(error)));
+                out.write(new PTPIPContainer(new InitError(error1)));
             }
 
             s.close(); server.close();

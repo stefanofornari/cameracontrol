@@ -1,6 +1,6 @@
 /*
  * cameracontrol
- * Copyright (C) 2010 Stefano Fornari
+ * Copyright (C) 2018 Stefano Fornari
  *
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by
@@ -19,22 +19,39 @@
  * the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
  * MA 02110-1301 USA.
  */
+package ste.cameracontrol.wifi;
 
-package ste.cameracontrol;
-
-import ste.ptp.PTPException;
+import java.io.InputStream;
+import java.net.ServerSocket;
+import java.net.Socket;
 
 /**
  *
- * @author ste
  */
-public class CameraNotAvailableException extends PTPException {
+public class HostDebug {
 
-    /**
-     * Creates a new instance of <code>CameraBusyException</code> with default detail message.
-     */
-    public CameraNotAvailableException() {
-        super("camera not available");
+    public final static int PORT = 15740;
+
+
+    public static void main(String... args) throws Exception {
+        System.out.println("listening on " + PORT);
+        ServerSocket server = new ServerSocket(PORT);
+        Socket s = server.accept();
+
+        InputStream in = s.getInputStream();
+
+        int b = 0, c=0;
+        while ((b = in.read()) >= 0) {
+            if ((c++ % 16) == 0) {
+                System.out.println();
+            }
+            System.out.printf("%#04x ", (byte)b);
+        }
+
+        s.close(); server.close();
+
+        System.out.println("done, exiting... ");
     }
 
+    // --------------------------------------------------------- private methods
 }

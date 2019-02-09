@@ -21,16 +21,24 @@
  */
 package ste.cameracontrol.wifi;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.ConnectException;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.Socket;
-import ste.cameracontrol.CameraConnectionException;
+import org.apache.commons.io.input.TeeInputStream;
+import org.apache.commons.io.output.TeeOutputStream;
 import ste.cameracontrol.CameraNotAvailableException;
+import ste.ptp.PTPException;
 import ste.ptp.ip.Constants;
 import ste.ptp.ip.InitCommandAcknowledge;
 import ste.ptp.ip.InitCommandRequest;
 import ste.ptp.ip.InitError;
+import ste.ptp.ip.InitEventAcknowledge;
 import ste.ptp.ip.InitEventRequest;
 import ste.ptp.ip.PTPIPContainer;
 import ste.ptp.ip.PacketInputStream;
@@ -44,48 +52,80 @@ public class CameraController {
     public static final int TIMEOUT_CONNECT = 2000;
     public static final int PORT = 15740;
 
-    public static final String CLIENT_NAME = "Camera Control";
+    //public static final String CLIENT_NAME = "Camera Control";
+    public static final String CLIENT_NAME = "MyName.name";
     // MD5(CLIENT_NAME);
+    /*
     public static final byte[] CLIENT_ID = new byte[] {
-            (byte)0x69, (byte)0x61, (byte)0x75, (byte)0x16,
-            (byte)0x6c, (byte)0x22, (byte)0x82, (byte)0xe8,
-            (byte)0x95, (byte)0xf3, (byte)0x60, (byte)0x30,
-            (byte)0xbd, (byte)0x25, (byte)0x56, (byte)0x8f
+        (byte)0x69, (byte)0x61, (byte)0x75, (byte)0x16,
+        (byte)0x6c, (byte)0x22, (byte)0x82, (byte)0xe8,
+        (byte)0x95, (byte)0xf3, (byte)0x60, (byte)0x30,
+        (byte)0xbd, (byte)0x25, (byte)0x56, (byte)0x8f
+    };
+    */
+    public static final byte[] CLIENT_ID = new byte[] {
+            (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
+            (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
+            (byte)0xff, (byte)0xff, (byte)0x00, (byte)0x00,
+            (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00
     };
     public static final String CLIENT_VERSION = "1.0";
 
     private Socket socket;
+    private InputStream socketInput;
+    private OutputStream socketOutput;
 
     private byte[] cameraId;
     private int    sessionId;
     private String cameraName;
     private String cameraSwVersion;
 
+    private int reqCounter = 0, resCounter = 0;
+
     public void connect(String host)
-    throws CameraNotAvailableException, CameraConnectionException {
+    throws CameraNotAvailableException, PTPException {
+        final String[] errors = new String[] {
+            "command request error", "event request error"
+        };
+
+        int step = 0;
         try {
             if (InetAddress.getByName(host).isReachable(TIMEOUT_CONNECT)) {
-                socket = new Socket(host, PORT);
+                socket = new Socket();
+                socket.setSoTimeout(0);
+                socket.setKeepAlive(true);
+                socket.setTcpNoDelay(true);
+                socket.connect(new InetSocketAddress(host, PORT));
+
+                socketInput = socket.getInputStream();
+                socketOutput = socket.getOutputStream();
 
                 request(
                     new PTPIPContainer(new InitCommandRequest(CLIENT_ID, CLIENT_NAME, CLIENT_VERSION))
                 );
 
                 PTPIPContainer response = response();
-                if (response.payload instanceof InitCommandAcknowledge) {
+                if (response.payload.getType() == Constants.PacketType.INIT_COMMAND_ACK.type()) {
                     InitCommandAcknowledge payload = (InitCommandAcknowledge)response.payload;
                     cameraId = payload.guid;
                     cameraName = payload.hostname;
                     sessionId = payload.sessionId;
                     cameraSwVersion = payload.version;
 
+                    ++step;
                     request(
                         new PTPIPContainer(new InitEventRequest(sessionId))
                     );
+
+                    response = response();
+
                 }
 
                 return;
             }
+        } catch (PTPException x) {
+            x.printStackTrace();
+            throw new PTPException(errors[step], x.getErrorCode());
         } catch (ConnectException x) {
             //
             // nothing to do, a CameranNotAvailableException will be thrown
@@ -124,29 +164,49 @@ public class CameraController {
     // --------------------------------------------------------- private methods
 
     private void request(PTPIPContainer packet) throws IOException {
-        PacketOutputStream out = new PacketOutputStream(socket.getOutputStream());
+        PacketOutputStream out = new PacketOutputStream(
+            new TeeOutputStream(
+                socketOutput,
+                new FileOutputStream(new File("cc-req-" + (++reqCounter) + ".dump"))
+            )
+        );
 
         out.write(packet); out.flush();
     }
 
-    private PTPIPContainer response() throws IOException, CameraConnectionException {
-        PacketInputStream in = new PacketInputStream(socket.getInputStream());
+    private PTPIPContainer response() throws IOException, PTPException {
+        PacketInputStream in = new PacketInputStream(
+            new TeeInputStream(
+                socketInput,
+                new FileOutputStream(new File("cc-res-" + (++resCounter) + ".dump"))
+            )
+        );
+        /*
+        PacketInputStream in = new PacketInputStream(
+            socket.getInputStream()
+        );
+        */
 
-        PTPIPContainer ret = new PTPIPContainer();
+
         int size = in.readLEInt();
         int type = in.readLEInt();
 
         System.out.println("size: " + size);
         System.out.println("type: " + type);
 
+        //
+        // TODO move in PacketInputStream
+        //
         if (type == Constants.PacketType.INIT_COMMAND_ACK.type()) {
             InitCommandAcknowledge ack = in.readInitCommandAcknowledge();
             cameraId = ack.guid;
 
             return new PTPIPContainer(ack);
+        } else if (type == Constants.PacketType.INIT_EVENT_ACK.type()) {
+            return new PTPIPContainer(new InitEventAcknowledge());
         } else if (type == Constants.PacketType.INIT_COMMAND_FAIL.type()) {
             InitError err = in.readInitError();
-            throw new CameraConnectionException(err.error);
+            throw new PTPException(err.error);
         }
 
         throw new IOException("protocol error (type:  " + type + ")");

@@ -31,10 +31,9 @@ import ste.ptp.PTPException;
 public class CameraConnectionException extends PTPException {
 
     /**
-     * Creates a new instance of <code>CameraBusyException</code> with default detail message.
+     * Creates a new instance of <code>CameraConnectionException</code> with default detail message.
      */
     public CameraConnectionException(int code) {
-        super(String.format("Camera connection error %#010x", code), code);
+        super(String.format("%#010x camera connection error", code), code);
     }
-
 }

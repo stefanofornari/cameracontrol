@@ -346,7 +346,7 @@ public class CameraController implements Runnable {
             //
             // No cameras found
             //
-            throw new PTPException("Camera not available");
+            throw new PTPException("camera not available");
         }
 
         if (device == null) {
