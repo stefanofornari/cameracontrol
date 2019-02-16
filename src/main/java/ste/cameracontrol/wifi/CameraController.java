@@ -24,8 +24,6 @@ package ste.cameracontrol.wifi;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.ConnectException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -38,7 +36,6 @@ import ste.ptp.ip.Constants;
 import ste.ptp.ip.InitCommandAcknowledge;
 import ste.ptp.ip.InitCommandRequest;
 import ste.ptp.ip.InitError;
-import ste.ptp.ip.InitEventAcknowledge;
 import ste.ptp.ip.InitEventRequest;
 import ste.ptp.ip.PTPIPContainer;
 import ste.ptp.ip.PacketInputStream;
@@ -52,19 +49,17 @@ public class CameraController {
     public static final int TIMEOUT_CONNECT = 2000;
     public static final int PORT = 15740;
 
-    public static final String CLIENT_NAME = "Camera Control";
+    public static final String CLIENT_NAME = "Wi-4000D-Fi";
     // MD5(CLIENT_NAME);
     public static final byte[] CLIENT_ID = new byte[] {
-        (byte)0x69, (byte)0x61, (byte)0x75, (byte)0x16,
-        (byte)0x6c, (byte)0x22, (byte)0x82, (byte)0xe8,
-        (byte)0x95, (byte)0xf3, (byte)0x60, (byte)0x30,
-        (byte)0xbd, (byte)0x25, (byte)0x56, (byte)0x8f
+        (byte)0xF7, (byte)0xA8, (byte)0xAD, (byte)0xCB,
+        (byte)0x95, (byte)0x64, (byte)0x92, (byte)0x53,
+        (byte)0x62, (byte)0xFA, (byte)0x2E, (byte)0x5B,
+        (byte)0x0B, (byte)0xC4, (byte)0xA1, (byte)0xA0
     };
     public static final String CLIENT_VERSION = "1.0";
 
     private Socket socket;
-    private InputStream socketInput;
-    private OutputStream socketOutput;
 
     private byte[] cameraId;
     private int    sessionId;
@@ -73,7 +68,7 @@ public class CameraController {
 
     private int reqCounter = 0, resCounter = 0;
 
-    private String host;  // TODO improve this (shall it be passed into the constructor?
+    private String host;  // TODO improve this (shall it be passed into the constructor?)
 
     public void connect(String host)
     throws CameraNotAvailableException, PTPException {
@@ -173,34 +168,23 @@ public class CameraController {
                 new FileOutputStream(new File("cc-res-" + (++resCounter) + ".dump"))
             )
         );
-        /*
-        PacketInputStream in = new PacketInputStream(
-            socket.getInputStream()
-        );
-        */
 
+        PTPIPContainer packet = in.readPTPContainer();
 
-        int size = in.readLEInt();
-        int type = in.readLEInt();
+        switch (packet.type) {
+            case Constants.INIT_COMMAND_ACK:
+                cameraId = ((InitCommandAcknowledge)packet.payload).guid;
+                return packet;
 
-        System.out.println("size: " + size);
-        System.out.println("type: " + type);
+            case Constants.INIT_EVENT_ACK:
+                return packet;
 
-        //
-        // TODO move in PacketInputStream
-        //
-        if (type == Constants.INIT_COMMAND_ACK) {
-            InitCommandAcknowledge ack = in.readInitCommandAcknowledge();
-            cameraId = ack.guid;
+            case Constants.INIT_COMMAND_FAIL:
+                InitError error = (InitError)packet.payload;
+                throw new PTPException(error.error);
 
-            return new PTPIPContainer(ack);
-        } else if (type == Constants.INIT_EVENT_ACK) {
-            return new PTPIPContainer(new InitEventAcknowledge());
-        } else if (type == Constants.INIT_COMMAND_FAIL) {
-            InitError err = in.readInitError();
-            throw new PTPException(err.error);
         }
 
-        throw new IOException("protocol error (type:  " + type + ")");
+        throw new IOException("protocol error (type:  " + packet.type + ")");
     }
 }

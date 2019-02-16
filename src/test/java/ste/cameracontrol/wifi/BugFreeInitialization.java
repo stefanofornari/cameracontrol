@@ -83,7 +83,7 @@ public class BugFreeInitialization {
         CameraHost camera = CameraSimulatorFactory.CAMERA.get().get(0);
         PacketInputStream is = new PacketInputStream(new ByteArrayInputStream(camera.getWrittenBytes()));
         PTPIPContainer packet = is.readPTPContainer();
-        then(packet.getSize()).isEqualTo(58);
+        then(packet.getSize()).isEqualTo(52);
         then(packet.type).isEqualTo(Constants.INIT_COMMAND_REQUEST);
         then(packet.payload).isInstanceOf(InitCommandRequest.class);
 
@@ -124,7 +124,7 @@ public class BugFreeInitialization {
         is = new PacketInputStream(new ByteArrayInputStream(camera.getWrittenBytes()));
         packet = is.readPTPContainer();
 
-        then(packet.getSize()).isEqualTo(58);
+        then(packet.getSize()).isEqualTo(52);
         then(packet.type).isEqualTo(1);
         then(packet.payload).isInstanceOf(InitCommandRequest.class);
 
