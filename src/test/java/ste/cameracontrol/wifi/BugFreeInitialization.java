@@ -21,8 +21,12 @@
  */
 package ste.cameracontrol.wifi;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.net.Socket;
 import static org.assertj.core.api.Assertions.fail;
 import static org.assertj.core.api.BDDAssertions.then;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import ste.cameracontrol.CameraNotAvailableException;
 import ste.ptp.PTPException;
@@ -30,16 +34,17 @@ import ste.ptp.ip.Constants;
 import ste.ptp.ip.InitCommandRequest;
 import ste.ptp.ip.InitEventRequest;
 import ste.ptp.ip.PTPIPContainer;
-import ste.xtest.concurrent.Condition;
-import ste.xtest.concurrent.WaitFor;
+import ste.ptp.ip.PacketInputStream;
 
 /**
  *
- * @author ste
  */
-public class BugFreeTCPInitialization {
+public class BugFreeInitialization {
 
-
+    @BeforeClass
+    public static void before_class() throws IOException {
+        Socket.setSocketImplFactory(new CameraSimulatorFactory());
+    }
 
     @Test
     public void start_tcp_session_ok() throws Exception {
@@ -53,6 +58,8 @@ public class BugFreeTCPInitialization {
 
     @Test
     public void start_tcp_session_no_camera_available() throws Exception {
+        CameraUtils.givenNoCamera();
+
         CameraController controller = new CameraController();
 
         try {
@@ -65,24 +72,19 @@ public class BugFreeTCPInitialization {
 
     @Test
     public void start_ptpip_session_handshake_ok() throws Exception {
-        final CameraHost HOST1 = CameraUtils.givenStartedCamera("EOS4000D", CameraController.CLIENT_ID, CameraUtils.GUID1);
+        CameraUtils.givenStartedCamera("EOS4000D", CameraController.CLIENT_ID, CameraUtils.GUID1);
 
         CameraController controller = new CameraController();
         controller.connect("localhost");
 
-        new WaitFor(1000, new Condition() {
-            @Override
-            public boolean check() {
-                return !HOST1.packets.isEmpty();
-            }
-        });
-
         //
         // Requests (PC -> camera)
         //
-        PTPIPContainer packet = HOST1.packets.get(0);
+        CameraHost camera = CameraSimulatorFactory.CAMERA.get().get(0);
+        PacketInputStream is = new PacketInputStream(new ByteArrayInputStream(camera.getWrittenBytes()));
+        PTPIPContainer packet = is.readPTPContainer();
         then(packet.getSize()).isEqualTo(58);
-        then(packet.type).isEqualTo(Constants.PacketType.INIT_COMMAND_REQUEST.type());
+        then(packet.type).isEqualTo(Constants.INIT_COMMAND_REQUEST);
         then(packet.payload).isInstanceOf(InitCommandRequest.class);
 
         InitCommandRequest icr = (InitCommandRequest)packet.payload;
@@ -90,13 +92,15 @@ public class BugFreeTCPInitialization {
         then(icr.hostname).isEqualTo(CameraController.CLIENT_NAME);
         then(icr.version).isEqualTo(CameraController.CLIENT_VERSION);
 
-        packet = HOST1.packets.get(1);
+        camera = CameraSimulatorFactory.CAMERA.get().get(1);
+        is = new PacketInputStream(new ByteArrayInputStream(camera.getWrittenBytes()));
+        packet = is.readPTPContainer();
         then(packet.getSize()).isEqualTo(12);
-        then(packet.type).isEqualTo(Constants.PacketType.INIT_EVENT_REQUEST.type());
+        then(packet.type).isEqualTo(Constants.INIT_EVENT_REQUEST);
         then(packet.payload).isInstanceOf(InitEventRequest.class);
 
         InitEventRequest ier = (InitEventRequest)packet.payload;
-        then(ier.sessionId).isEqualTo(HOST1.sessionId);
+        then(ier.sessionId).isEqualTo(1);
 
         //
         // Results
@@ -109,25 +113,17 @@ public class BugFreeTCPInitialization {
         //
         // Another camera...
         //
-
-        final CameraHost HOST2 = CameraUtils.givenStartedCamera("EOS1000D", CameraController.CLIENT_ID, CameraUtils.GUID2);
-        HOST2.sessionId = 10;
-        HOST2.version = "1.1";
-
+        CameraUtils.givenStartedCamera("EOS1000D", CameraController.CLIENT_ID, CameraUtils.GUID2, "1.1", 0x0102);
         controller = new CameraController();
         controller.connect("localhost");
-
-        new WaitFor(1000, new Condition() {
-            @Override
-            public boolean check() {
-                return !HOST2.packets.isEmpty();
-            }
-        });
 
         //
         // Request
         //
-        packet = HOST2.packets.get(0);
+        camera = CameraSimulatorFactory.CAMERA.get().get(0);
+        is = new PacketInputStream(new ByteArrayInputStream(camera.getWrittenBytes()));
+        packet = is.readPTPContainer();
+
         then(packet.getSize()).isEqualTo(58);
         then(packet.type).isEqualTo(1);
         then(packet.payload).isInstanceOf(InitCommandRequest.class);
@@ -140,7 +136,7 @@ public class BugFreeTCPInitialization {
         //
         // response
         //
-        then(controller.getSessionId()).isEqualTo(11);
+        then(controller.getSessionId()).isEqualTo(0x0102);
         then(controller.getCameraName()).isEqualTo("EOS1000D");
         then(controller.getCameraGUID()).containsExactly(CameraUtils.GUID2);
         then(controller.getCameraSwVersion()).isEqualTo("1.1");
@@ -160,7 +156,7 @@ public class BugFreeTCPInitialization {
         }
     }
 
-    @Test(timeout = 5000)
+    @Test
     public void command_initialization_error() throws Exception {
         CameraUtils.givenCameraWithError1(0x01020304);
 
@@ -185,7 +181,7 @@ public class BugFreeTCPInitialization {
         }
     }
 
-    @Test(timeout = 5000)
+    @Test
     public void event_initialization_error() throws Exception {
         CameraUtils.givenCameraWithError2(0x01020304);
 

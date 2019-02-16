@@ -21,28 +21,23 @@
  */
 package ste.cameracontrol.wifi;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.util.ArrayList;
-import java.util.List;
+import java.io.OutputStream;
+import java.net.InetAddress;
+import java.net.SocketAddress;
+import java.net.SocketException;
+import java.net.SocketImpl;
 import org.apache.commons.codec.binary.Hex;
-import org.apache.commons.io.input.TeeInputStream;
-import ste.ptp.ip.Constants;
-import ste.ptp.ip.InitCommandAcknowledge;
-import ste.ptp.ip.InitCommandRequest;
-import ste.ptp.ip.InitError;
-import ste.ptp.ip.InitEventAcknowledge;
-import ste.ptp.ip.PTPIPContainer;
-import ste.ptp.ip.PacketInputStream;
-import ste.ptp.ip.PacketOutputStream;
 
 /**
  *
  */
-public class CameraHost implements Runnable {
+public class CameraHost extends SocketImpl {
+
+    private final ByteArrayOutputStream OUT = new ByteArrayOutputStream();
 
     private static final byte[] GUID = new byte[] {
         (byte)0x00, (byte)0x01, (byte)0x02, (byte)0x03,
@@ -50,145 +45,81 @@ public class CameraHost implements Runnable {
         (byte)0x08, (byte)0x09, (byte)0x0a, (byte)0x0b,
         (byte)0x0c, (byte)0x0d, (byte)0x0e, (byte)0x0f
     };
-    private static final String NAME = "MYHOST";
 
-    public byte[] acceptedClientId;
-    public String name;
-    public byte[] cameraId;
-    public int    error1, error2;
-    public int    sessionId;
-    public String version;
+    public IOException error;
 
+    public byte[] response;
 
-    public ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+    public byte[] getWrittenBytes() {
+        return OUT.toByteArray();
+    }
 
-    public List<PTPIPContainer> packets = new ArrayList<>();
+    // -------------------------------------------------------------- SocketImpl
 
-    private Thread worker;
-    private ServerSocket server;
+    @Override
+    protected void create(boolean stream) throws IOException {}
 
-    public boolean isOn() {
-        return worker.isAlive() && (server != null);
+    @Override
+    protected void connect(String host, int port) throws IOException {
+        connect();
     }
 
     @Override
-    public void run() {
-        System.out.println("starting worker " + this + " " + Thread.currentThread());
-        try {
-            server = new ServerSocket(15740);
-            Socket s = server.accept();
-
-            PacketInputStream in = new PacketInputStream(new TeeInputStream(s.getInputStream(), buffer));
-            PacketOutputStream out = new PacketOutputStream(s.getOutputStream());
-
-            PTPIPContainer packet = new PTPIPContainer();
-
-            // ---
-            // Introduction
-            //
-
-            //
-            // INIT COMMAND REQUEST
-            //
-
-            //
-            // length of the packet
-            //
-            int size = in.readLEInt();
-            System.out.println("packet length: " + size);
-
-            //
-            // type of the packet
-            //
-            packet.type = in.readLEInt();
-            System.out.println("packet type: " + packet.type);
-
-            //
-            // read introduction payload
-            // TODO: to move in PacketInputStream
-            //
-            packet.payload = readIntroduction(in);
-
-            packets.add(packet);
-
-            if (error1 == 0) {
-                //
-                // INIT_COMMAND ACNOWLEDGE
-                //
-                ++sessionId;
-                out.write(
-                    new PTPIPContainer(new InitCommandAcknowledge(sessionId, cameraId, name, version))
-                );
-
-                packet = new PTPIPContainer();
-                size = in.readLEInt();  // size
-                System.out.println("size: " + size);
-                packet.type = in.readLEInt();
-                System.out.println("size: " + packet.type);
-                if (packet.type == Constants.PacketType.INIT_EVENT_REQUEST.type()) {
-                    packet.payload = in.readInitEventRequest();
-                    packets.add(packet);
-
-                    if (error2 == 0) {
-                        out.write(new PTPIPContainer(new InitEventAcknowledge()));
-                    } else {
-                        //
-                        // Error packet
-                        //
-                        out.write(new PTPIPContainer(new InitError(error2)));
-                    }
-                }
-            } else {
-                //
-                // Error packet
-                //
-                out.write(new PTPIPContainer(new InitError(error1)));
-            }
-
-            s.close(); server.close();
-        } catch (IOException x) {
-            x.printStackTrace();
-        }
-        System.out.println("worker done " + this + " " + Thread.currentThread());
+    protected void connect(InetAddress address, int port) throws IOException {
+        connect();
     }
 
-    public void start() {
-        worker = new Thread(this);
-        worker.start();
+    @Override
+    protected void connect(SocketAddress address, int timeout) throws IOException {
+        connect();
+    }
+
+    @Override
+    protected void bind(InetAddress host, int port) throws IOException {}
+
+    @Override
+    protected void listen(int backlog) throws IOException {}
+
+    @Override
+    protected void accept(SocketImpl s) throws IOException {}
+
+    @Override
+    protected InputStream getInputStream() throws IOException {
+        System.out.println(this + " returning " + Hex.encodeHexString(response));
+        return new ByteArrayInputStream(response);
+    }
+
+    @Override
+    protected OutputStream getOutputStream() throws IOException {
+        return OUT;
+    }
+
+    @Override
+    protected int available() throws IOException {
+        return 0;
+    }
+
+    @Override
+    protected void close() throws IOException {}
+
+    @Override
+    protected void sendUrgentData(int data) throws IOException {
+        throw new UnsupportedOperationException("sendUrgentData not supported yet.");
+    }
+
+    @Override
+    public void setOption(int optID, Object value) throws SocketException {}
+
+    @Override
+    public Object getOption(int optID) throws SocketException {
+        return null;
     }
 
     // --------------------------------------------------------- private methods
 
-    private InitCommandRequest readIntroduction(InputStream is) throws IOException {
-
-        //
-        // read guid
-        //
-        byte[] guid = new byte[16];
-        is.read(guid);
-        System.out.println("introduction - guid: " + Hex.encodeHexString(guid));
-
-        //
-        // read hostname + UTF16(0) (max 256 chars)
-        //
-        StringBuilder hostname = new StringBuilder();
-        for (int i=0; i<256; ++i) {
-            char c = (char)(is.read() | (is.read()<<8));
-
-            if (c == 0) {
-                break; // 0-terminated string
-            }
-            hostname.append(c);
+    private void connect() throws IOException {
+        if (error != null) {
+            throw error;
         }
-        System.out.println("introduction - hostname: " + hostname);
-
-        //
-        // client version number
-        //
-        int minor = is.read() | (is.read() << 8);
-        int major = is.read() | (is.read() << 8);
-        System.out.println("introduction - version: " + major + "." + minor);
-
-        return new InitCommandRequest(guid, hostname.toString(), major + "." + minor);
     }
 }

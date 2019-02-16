@@ -52,22 +52,13 @@ public class CameraController {
     public static final int TIMEOUT_CONNECT = 2000;
     public static final int PORT = 15740;
 
-    //public static final String CLIENT_NAME = "Camera Control";
-    public static final String CLIENT_NAME = "MyName.name";
+    public static final String CLIENT_NAME = "Camera Control";
     // MD5(CLIENT_NAME);
-    /*
     public static final byte[] CLIENT_ID = new byte[] {
         (byte)0x69, (byte)0x61, (byte)0x75, (byte)0x16,
         (byte)0x6c, (byte)0x22, (byte)0x82, (byte)0xe8,
         (byte)0x95, (byte)0xf3, (byte)0x60, (byte)0x30,
         (byte)0xbd, (byte)0x25, (byte)0x56, (byte)0x8f
-    };
-    */
-    public static final byte[] CLIENT_ID = new byte[] {
-            (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
-            (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00,
-            (byte)0xff, (byte)0xff, (byte)0x00, (byte)0x00,
-            (byte)0x00, (byte)0x00, (byte)0x00, (byte)0x00
     };
     public static final String CLIENT_VERSION = "1.0";
 
@@ -82,30 +73,25 @@ public class CameraController {
 
     private int reqCounter = 0, resCounter = 0;
 
+    private String host;  // TODO improve this (shall it be passed into the constructor?
+
     public void connect(String host)
     throws CameraNotAvailableException, PTPException {
         final String[] errors = new String[] {
             "command request error", "event request error"
         };
 
+        this.host = host;
+
         int step = 0;
         try {
             if (InetAddress.getByName(host).isReachable(TIMEOUT_CONNECT)) {
-                socket = new Socket();
-                socket.setSoTimeout(0);
-                socket.setKeepAlive(true);
-                socket.setTcpNoDelay(true);
-                socket.connect(new InetSocketAddress(host, PORT));
-
-                socketInput = socket.getInputStream();
-                socketOutput = socket.getOutputStream();
-
                 request(
                     new PTPIPContainer(new InitCommandRequest(CLIENT_ID, CLIENT_NAME, CLIENT_VERSION))
                 );
 
                 PTPIPContainer response = response();
-                if (response.payload.getType() == Constants.PacketType.INIT_COMMAND_ACK.type()) {
+                if (response.payload.getType() == Constants.INIT_COMMAND_ACK) {
                     InitCommandAcknowledge payload = (InitCommandAcknowledge)response.payload;
                     cameraId = payload.guid;
                     cameraName = payload.hostname;
@@ -164,9 +150,15 @@ public class CameraController {
     // --------------------------------------------------------- private methods
 
     private void request(PTPIPContainer packet) throws IOException {
+        socket = new Socket();
+        socket.setSoTimeout(0);
+        socket.setKeepAlive(true);
+        socket.setTcpNoDelay(true);
+        socket.connect(new InetSocketAddress(host, PORT));
+
         PacketOutputStream out = new PacketOutputStream(
             new TeeOutputStream(
-                socketOutput,
+                socket.getOutputStream(),
                 new FileOutputStream(new File("cc-req-" + (++reqCounter) + ".dump"))
             )
         );
@@ -177,7 +169,7 @@ public class CameraController {
     private PTPIPContainer response() throws IOException, PTPException {
         PacketInputStream in = new PacketInputStream(
             new TeeInputStream(
-                socketInput,
+                socket.getInputStream(),
                 new FileOutputStream(new File("cc-res-" + (++resCounter) + ".dump"))
             )
         );
@@ -197,14 +189,14 @@ public class CameraController {
         //
         // TODO move in PacketInputStream
         //
-        if (type == Constants.PacketType.INIT_COMMAND_ACK.type()) {
+        if (type == Constants.INIT_COMMAND_ACK) {
             InitCommandAcknowledge ack = in.readInitCommandAcknowledge();
             cameraId = ack.guid;
 
             return new PTPIPContainer(ack);
-        } else if (type == Constants.PacketType.INIT_EVENT_ACK.type()) {
+        } else if (type == Constants.INIT_EVENT_ACK) {
             return new PTPIPContainer(new InitEventAcknowledge());
-        } else if (type == Constants.PacketType.INIT_COMMAND_FAIL.type()) {
+        } else if (type == Constants.INIT_COMMAND_FAIL) {
             InitError err = in.readInitError();
             throw new PTPException(err.error);
         }

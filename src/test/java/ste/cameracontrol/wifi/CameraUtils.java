@@ -5,8 +5,16 @@
  */
 package ste.cameracontrol.wifi;
 
-import ste.xtest.concurrent.Condition;
-import ste.xtest.concurrent.WaitFor;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.List;
+import ste.ptp.ip.InitCommandAcknowledge;
+import ste.ptp.ip.InitError;
+import ste.ptp.ip.InitEventAcknowledge;
+import ste.ptp.ip.PTPIPContainer;
+import ste.ptp.ip.PacketOutputStream;
 
 /**
  *
@@ -27,40 +35,93 @@ public class CameraUtils {
         (byte) 0xa0, (byte) 0xb0, (byte) 0xc0, (byte) 0xd0
     };
 
-    public static CameraHost givenStartedCamera() throws Exception {
-        return givenStartedCamera("EOS4000D", CameraController.CLIENT_ID, GUID1);
+    public static void givenStartedCamera() throws Exception {
+        givenStartedCamera("EOS4000D", CameraController.CLIENT_ID, GUID1);
     }
 
-    public static CameraHost givenStartedCamera(String name, byte[] clientId, byte[] guid) throws Exception {
+    public static void givenStartedCamera(String name, byte[] clientId, byte[] guid) throws Exception {
+        givenStartedCamera(name, clientId, guid, "1.0", 1);
+    }
+
+    public static void givenStartedCamera(String name, byte[] clientId, byte[] guid, String version, int sessionId) throws Exception {
+        reset();
+
+        ArrayList<CameraHost> list = new ArrayList<>();
+        CameraSimulatorFactory.CAMERA.set(list);
+
         CameraHost camera = new CameraHost();
-        camera.acceptedClientId = clientId;
-        camera.name = name;
-        camera.cameraId = guid;
-        camera.version = "1.0";
-        camera.start();
-        new WaitFor(1000, new Condition() {
-            @Override
-            public boolean check() {
-                return camera.isOn();
-            }
-        });
-        return camera;
+        camera.response = toBytes(
+            new PTPIPContainer(
+                new InitCommandAcknowledge(sessionId, guid, name, version)
+            )
+        );
+        list.add(camera);
+
+        camera = new CameraHost();
+        camera.response = toBytes(
+            new PTPIPContainer(
+                new InitEventAcknowledge()
+            )
+        );
+        list.add(camera);
     }
 
-    public static CameraHost givenCameraWithError1(int error) throws Exception {
-        final CameraHost camera = givenStartedCamera("EOS4000D", CameraController.CLIENT_ID, GUID1);
-        camera.error1 = error;
-        return camera;
+    public static void givenCameraWithError1(int error) throws Exception {
+        reset();
+
+        ArrayList<CameraHost> list = new ArrayList<>();
+        CameraSimulatorFactory.CAMERA.set(list);
+
+        CameraHost camera = new CameraHost();
+        camera.response = toBytes(new PTPIPContainer(new InitError(error)));
+
+        list.add(camera);
     }
 
-    public static CameraHost givenCameraWithError2(int error) throws Exception {
-        final CameraHost camera = givenStartedCamera("EOS4000D", CameraController.CLIENT_ID, GUID1);
-        camera.error2 = error;
-        return camera;
+    public static void givenCameraWithError2(int error) throws Exception {
+        reset();
+
+        ArrayList<CameraHost> list = new ArrayList<>();
+        CameraSimulatorFactory.CAMERA.set(list);
+
+        CameraHost camera = new CameraHost();
+        camera.response = toBytes(
+            new PTPIPContainer(
+                new InitCommandAcknowledge(0x01020304, GUID1, "camera", "1.0")
+            )
+        );
+        list.add(camera);
+        camera = new CameraHost();
+        camera.response = toBytes(new PTPIPContainer(new InitError(error)));
+        list.add(camera);
     }
 
-    public static CameraHost givenNoCamera() throws Exception {
-        return new CameraHost();
+    public static void givenNoCamera() throws Exception {
+        reset();
+
+        ArrayList<CameraHost> list = new ArrayList<>();
+        CameraSimulatorFactory.CAMERA.set(list);
+
+        CameraHost camera = new CameraHost();
+        camera.error = new UnknownHostException();
+        list.add(camera);
+    }
+
+    public static byte[] toBytes(PTPIPContainer packet) throws IOException {
+        final ByteArrayOutputStream BAOS = new ByteArrayOutputStream();
+
+        final PacketOutputStream POS = new PacketOutputStream(BAOS);
+        POS.write(packet); POS.flush();
+
+        return BAOS.toByteArray();
+    }
+
+    public static void reset() {
+        List list = CameraSimulatorFactory.CAMERA.get();
+        if (list != null) {
+            list.clear();
+        }
+        CameraSimulatorFactory.step = 0;
     }
 
 }

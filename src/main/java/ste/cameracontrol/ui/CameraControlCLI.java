@@ -21,12 +21,8 @@
  */
 package ste.cameracontrol.ui;
 
-import java.io.IOException;
 import java.net.InetAddress;
-import java.net.ServerSocket;
-import java.net.URL;
 import org.apache.commons.codec.binary.Hex;
-import org.apache.commons.io.IOUtils;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -68,6 +64,7 @@ public class CameraControlCLI {
         }
 
         if (options.connect) {
+            /*
             try {
                 URL url = new URL("http://" + options.host.getHostName() + ":49152/upnp/CameraDevDesc.xml");
 
@@ -75,6 +72,7 @@ public class CameraControlCLI {
             } catch (IOException x) {
                 x.printStackTrace();
             }
+            */
             connect(options);
         }
     }
@@ -91,6 +89,7 @@ public class CameraControlCLI {
     private void connect(CameraControlOptions options) {
         CameraController cc = new CameraController();
 
+        /*
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -104,20 +103,7 @@ public class CameraControlCLI {
 
             }
         }).start();
-
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    ServerSocket s = new ServerSocket(32824);
-                    s.accept();
-                    System.out.println("life on 32824!");
-                } catch (IOException x) {
-                    x.printStackTrace();
-                }
-
-            }
-        }).start();
+        */
 
         try {
             cc.connect(options.host.getHostName());
