@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<root xmlns="urn:schemas-upnp-org:device-1-0">
+<specVersion>
+<major>1</major>
+<minor>0</minor>
+</specVersion>
+<URLBase>http://10.42.0.122:49152/upnp/</URLBase>
+<device>
+<deviceType>urn:schemas-upnp-org:device:Basic:1</deviceType>
+<friendlyName>Canon EOS 4000D</friendlyName>
+<manufacturer>Canon</manufacturer>
+<manufacturerURL>http://www.canon.com/</manufacturerURL>
+<modelDescription>Canon Digital Camera</modelDescription>
+<modelName>Canon EOS 4000D</modelName>
+<serialNumber>053070016574</serialNumber>
+<UDN>uuid:00000000-0000-0000-0001-F4A997FA6AAC</UDN>
+<serviceList>
+<service>
+<serviceType>urn:schemas-canon-com:service:ICPO-SmartPhoneEOSSystemService:1</serviceType>
+<serviceId>urn:schemas-canon-com:serviceId:ICPO-SmartPhoneEOSSystemService-1</serviceId>
+<SCPDURL>CameraSvcDesc.xml</SCPDURL>
+<controlURL>control/CanonCamera/</controlURL>
+<eventSubURL></eventSubURL>
+<ns:X_targetId xmlns:ns="urn:schemas-canon-com:schema-upnp">uuid:00000000-0000-0000-0001-FFFFFFFFFFFF</ns:X_targetId>
+<ns:X_onService xmlns:ns="urn:schemas-canon-com:schema-upnp">0</ns:X_onService>
+<ns:X_deviceUsbId xmlns:ns="urn:schemas-canon-com:schema-upnp">32d9</ns:X_deviceUsbId>
+<ns:X_deviceNickname xmlns:ns="urn:schemas-canon-com:schema-upnp">EOS4000D</ns:X_deviceNickname>
+</service>
+</serviceList>
+<presentationURL>/</presentationURL>
+</device>
+</root>

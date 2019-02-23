@@ -21,8 +21,14 @@
  */
 package ste.cameracontrol.ui;
 
+import java.io.IOException;
 import java.net.InetAddress;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import org.apache.commons.codec.binary.Hex;
+import org.w3c.dom.Document;
+import org.xml.sax.SAXException;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -64,16 +70,9 @@ public class CameraControlCLI {
         }
 
         if (options.connect) {
-            /*
-            try {
-                URL url = new URL("http://" + options.host.getHostName() + ":49152/upnp/CameraDevDesc.xml");
-
-                IOUtils.copy(url.openStream(), System.out);
-            } catch (IOException x) {
-                x.printStackTrace();
-            }
-            */
             connect(options);
+        } else if (options.check) {
+            check(options);
         }
     }
 
@@ -85,7 +84,6 @@ public class CameraControlCLI {
     }
 
     // --------------------------------------------------------- private methods
-
     private void connect(CameraControlOptions options) {
         CameraController cc = new CameraController();
 
@@ -103,8 +101,7 @@ public class CameraControlCLI {
 
             }
         }).start();
-        */
-
+         */
         try {
             cc.connect(options.host.getHostName());
 
@@ -114,6 +111,26 @@ public class CameraControlCLI {
         } catch (PTPException x) {
             x.printStackTrace();
         }
+    }
+
+    private void check(CameraControlOptions options) {
+
+        try {
+            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+            DocumentBuilder db = dbf.newDocumentBuilder();
+            Document d = db.parse("http://" + options.host.getHostName() + ":49152/upnp/CameraDevDesc.xml");
+
+            System.out.println("Camera: " + d.getElementsByTagName("modelName").item(0).getTextContent());
+            System.out.println("Manufacturer: " + d.getElementsByTagName("manufacturer").item(0).getTextContent());
+            System.out.println("Serial Number: " + d.getElementsByTagName("serialNumber").item(0).getTextContent());
+            System.out.println("UDN: " + d.getElementsByTagName("UDN").item(0).getTextContent());
+
+        } catch (IOException x) {
+            System.out.println("No camera seems to be available at 10.42.0.1 (connection refused)");
+        } catch (ParserConfigurationException | SAXException x) {
+            System.out.println("No camera seems to be available at 10.42.0.1 (no or invalid descriptor)");
+        }
+
     }
 
     /*
@@ -136,32 +153,37 @@ public class CameraControlCLI {
             camera.savePhoto(photo);
         }
     }
-*/
-
+     */
     // ---------------------------------------------------- command line options
-
     @Command(
-        name = "ste.cameracontrol.ui.CameraControlCLI",
-        description = "Remote controller for your Canon EOS camera."
+            name = "ste.cameracontrol.ui.CameraControlCLI",
+            description = "Remote controller for your Canon EOS camera."
     )
     protected static class CameraControlOptions {
+
         @Option(
-            names = "--help, -h, help",
-            description = "This help message",
-            usageHelp = true
+                names = "--help, -h, help",
+                description = "This help message",
+                usageHelp = true
         )
         public boolean help;
 
         @Option(
-            names = "connect",
-            description = "Connect to the camera"
+                names = "connect",
+                description = "Connect to the camera at the given address"
         )
         public boolean connect;
 
+        @Option(
+                names = "check",
+                description = "Check if there is a camera at the given address"
+        )
+        public boolean check;
+
         @Parameters(
-            paramLabel = "HOSTNAME",
-            description = "the camera hostname or ip address",
-            arity = "1"
+                paramLabel = "HOSTNAME",
+                description = "the camera hostname or ip address",
+                arity = "1"
         )
         InetAddress host;
     }
