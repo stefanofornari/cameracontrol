@@ -129,13 +129,6 @@ public class BugFreeCameraControlCLI extends BugFreeCLI {
     }
 
     @Test
-    public void show_upnp_descriptor() throws Exception {
-        //
-        // TODO
-        //
-    }
-
-    @Test
     public void connect_ok() throws Exception {
         CameraUtils.givenStartedCamera();
 

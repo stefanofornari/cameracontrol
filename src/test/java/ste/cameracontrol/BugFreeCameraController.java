@@ -38,6 +38,8 @@ import ste.ptp.PTPException;
 import ste.ptp.Response;
 import ste.ptp.eos.EosEvent;
 import ste.ptp.eos.EosInitiator;
+import ste.xtest.concurrent.Condition;
+import ste.xtest.concurrent.WaitFor;
 
 /**
  *
@@ -177,15 +179,20 @@ public class BugFreeCameraController {
     @Test
     public void start_camera_monitor() throws Exception {
         final CameraController C = givenController(false);
-        ConnectedEventListener l = new ConnectedEventListener();
+        final ConnectedEventListener l = new ConnectedEventListener();
 
         C.addCameraListener(l);
         C.startCameraMonitor();
         Thread.sleep(100);
         then(l.device).isNull();
 
-        attachCamera(); Thread.sleep(100);
-        then(l.device).isNotNull();
+        attachCamera();
+        new WaitFor(500, new Condition() {
+            @Override
+            public boolean check() {
+                return (l.device != null);
+            }
+        });
 
         //
         // It has to notify only changes

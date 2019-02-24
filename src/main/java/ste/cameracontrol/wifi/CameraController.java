@@ -68,7 +68,7 @@ public class CameraController {
 
     private int reqCounter = 0, resCounter = 0;
 
-    private String host;  // TODO improve this (shall it be passed into the constructor?)
+    private String host;
 
     public void connect(String host)
     throws CameraNotAvailableException, PTPException {
@@ -76,11 +76,13 @@ public class CameraController {
             "command request error", "event request error"
         };
 
-        this.host = host;
+        reset();
 
         int step = 0;
         try {
             if (InetAddress.getByName(host).isReachable(TIMEOUT_CONNECT)) {
+                this.host = host;
+
                 request(
                     new PTPIPContainer(new InitCommandRequest(CLIENT_ID, CLIENT_NAME, CLIENT_VERSION))
                 );
@@ -186,5 +188,16 @@ public class CameraController {
         }
 
         throw new IOException("protocol error (type:  " + packet.type + ")");
+    }
+
+    private void reset() {
+        host = null;
+        socket = null;
+        cameraName = null;
+        cameraId = null;
+        cameraSwVersion = null;
+        sessionId = 0;
+        reqCounter = 0;
+        resCounter = 0;
     }
 }

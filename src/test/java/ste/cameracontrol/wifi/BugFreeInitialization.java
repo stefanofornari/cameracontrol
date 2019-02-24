@@ -153,6 +153,34 @@ public class BugFreeInitialization {
             fail("missing error");
         } catch (CameraNotAvailableException x) {
             then(x).hasMessage("0x00002000 camera not available");
+            then(controller.isConnected()).isFalse();
+            then(controller.getCameraName()).isNull();
+            then(controller.getCameraGUID()).isNull();
+            then(controller.getSessionId()).isZero();
+            then(controller.getCameraSwVersion()).isNull();
+        }
+    }
+
+    @Test
+    public void reset_on_connect() throws Exception {
+        CameraUtils.givenStartedCamera();
+
+        CameraController controller = new CameraController();
+        controller.connect("localhost");
+
+        then(controller.getCameraName()).isNotNull();
+
+        CameraUtils.givenNoCamera();
+        try {
+            controller.connect("localhost");
+            fail("missing error");
+        } catch (CameraNotAvailableException x) {
+            then(x).hasMessage("0x00002000 camera not available");
+            then(controller.isConnected()).isFalse();
+            then(controller.getCameraName()).isNull();
+            then(controller.getCameraGUID()).isNull();
+            then(controller.getSessionId()).isZero();
+            then(controller.getCameraSwVersion()).isNull();
         }
     }
 
