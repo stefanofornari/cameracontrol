@@ -1,6 +1,6 @@
 /*
  * cameracontrol
- * Copyright (C) 2019 Stefano Fornari
+ * Copyright (C) 2018 Stefano Fornari
  *
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU Affero General Public License version 3 as published by
@@ -21,28 +21,30 @@
  */
 package ste.cameracontrol.wifi;
 
-import java.net.SocketImpl;
-import java.net.SocketImplFactory;
-import java.util.ArrayList;
+import java.io.IOException;
+import java.net.Socket;
+import static org.assertj.core.api.BDDAssertions.then;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 /**
  *
- * NOTE: fork in a new VM and do not use any parallelism when using this
  */
-public class CameraSimulatorFactory implements SocketImplFactory {
+public class BugFreeStartRemoteSession {
 
-    public static int step;
-    public static final ThreadLocal<ArrayList<CameraHost>> CAMERA
-        = new ThreadLocal<ArrayList<CameraHost>>();
+    @BeforeClass
+    public static void before_class() throws IOException {
+        Socket.setSocketImplFactory(new CameraSimulatorFactory());
+    }
 
-    @Override
-    public SocketImpl createSocketImpl() {
-        try {
-            return CAMERA.get().get(step++);
-        } catch (IndexOutOfBoundsException x) {
-            String msg = "Undefined CamerHost with index " + (step-1) + " defined in CameraSimulatorFactory";
-            System.err.println(msg);
-            throw new RuntimeException(msg);
-        }
+    @Test
+    public void start_session_ok() throws Exception {
+        CameraUtils.givenStartedCamera();
+
+        CameraController controller = new CameraController();
+        controller.connect("localhost");
+        controller.startRemoteSesssion();
+
+        then(controller.getTransactionId()).isEqualTo(1);
     }
 }

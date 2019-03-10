@@ -168,6 +168,6 @@ public class BugFreeCameraControlCLI extends BugFreeCLI {
         then(STDOUT.getLog()).contains("No camera seems to be available at 10.42.0.1 (connection refused)");
 
         new CameraControlCLI().launch("check", "10.42.0.2");
-        then(STDOUT.getLog()).contains("No camera seems to be available at 10.42.0.1 (no or invalid descriptor)");
+        then(STDOUT.getLog()).contains("No camera seems to be available at 10.42.0.2 (no or invalid descriptor)");
     }
 }

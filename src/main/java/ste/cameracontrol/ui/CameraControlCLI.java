@@ -108,6 +108,8 @@ public class CameraControlCLI {
             System.out.println("Found " + cc.getCameraName() + " on " + options.host);
             System.out.println("GUID: " + Hex.encodeHexString(cc.getCameraGUID()));
             System.out.println("SW version: " + cc.getCameraSwVersion());
+
+            cc.startRemoteSesssion();
         } catch (PTPException x) {
             x.printStackTrace();
         }
@@ -126,9 +128,9 @@ public class CameraControlCLI {
             System.out.println("UDN: " + d.getElementsByTagName("UDN").item(0).getTextContent());
 
         } catch (IOException x) {
-            System.out.println("No camera seems to be available at 10.42.0.1 (connection refused)");
+            System.out.println("No camera seems to be available at " + options.host.getHostName() + " (connection refused)");
         } catch (ParserConfigurationException | SAXException x) {
-            System.out.println("No camera seems to be available at 10.42.0.1 (no or invalid descriptor)");
+            System.out.println("No camera seems to be available at " + options.host.getHostName() + " (no or invalid descriptor)");
         }
 
     }

@@ -31,12 +31,14 @@ import java.net.Socket;
 import org.apache.commons.io.input.TeeInputStream;
 import org.apache.commons.io.output.TeeOutputStream;
 import ste.cameracontrol.CameraNotAvailableException;
+import ste.ptp.OpenSessionOperation;
 import ste.ptp.PTPException;
 import ste.ptp.ip.Constants;
 import ste.ptp.ip.InitCommandAcknowledge;
 import ste.ptp.ip.InitCommandRequest;
 import ste.ptp.ip.InitError;
 import ste.ptp.ip.InitEventRequest;
+import ste.ptp.ip.OperationRequest;
 import ste.ptp.ip.PTPIPContainer;
 import ste.ptp.ip.PacketInputStream;
 import ste.ptp.ip.PacketOutputStream;
@@ -95,13 +97,14 @@ public class CameraController {
                     sessionId = payload.sessionId;
                     cameraSwVersion = payload.version;
 
+                    try {socket.close();} catch (IOException x) {};  // we need to reopen a connection after InitCommandRequest
+
                     ++step;
                     request(
                         new PTPIPContainer(new InitEventRequest(sessionId))
                     );
 
                     response = response();
-
                 }
 
                 return;
@@ -115,13 +118,23 @@ public class CameraController {
             //
         } catch (IOException x) {
             x.printStackTrace();
-        } finally {
-            if (socket != null) {
-                try {socket.close();} catch (IOException x) {};
-            }
         }
 
+        try {socket.close();} catch (IOException x) {};
+
         throw new CameraNotAvailableException();
+    }
+
+    public void startRemoteSesssion() throws PTPException {
+        try {
+            request(
+                new PTPIPContainer(new OperationRequest(new OpenSessionOperation()))
+            );
+            PTPIPContainer response = response();
+            System.out.println("response.type: " + response.type);
+        } catch (IOException x) {
+            throw new PTPException("io error", x);
+        }
     }
 
     public boolean isConnected() {
@@ -142,6 +155,10 @@ public class CameraController {
 
     public int getSessionId() {
         return sessionId;
+    }
+
+    public int getTransactionId() {
+        return 1;
     }
 
     // --------------------------------------------------------- private methods
@@ -179,6 +196,7 @@ public class CameraController {
                 return packet;
 
             case Constants.INIT_EVENT_ACK:
+            case Constants.OPERATION_RESPONSE:
                 return packet;
 
             case Constants.INIT_COMMAND_FAIL:

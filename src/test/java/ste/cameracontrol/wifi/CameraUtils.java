@@ -13,6 +13,7 @@ import java.util.List;
 import ste.ptp.ip.InitCommandAcknowledge;
 import ste.ptp.ip.InitError;
 import ste.ptp.ip.InitEventAcknowledge;
+import ste.ptp.ip.OperationResponse;
 import ste.ptp.ip.PTPIPContainer;
 import ste.ptp.ip.PacketOutputStream;
 
@@ -64,6 +65,10 @@ public class CameraUtils {
             )
         );
         list.add(camera);
+
+        camera = new CameraHost();
+        camera.response = toBytes(new PTPIPContainer(new OperationResponse(0x2001, 0)));
+        list.add(camera);
     }
 
     public static void givenCameraWithError1(int error) throws Exception {
@@ -91,6 +96,7 @@ public class CameraUtils {
             )
         );
         list.add(camera);
+
         camera = new CameraHost();
         camera.response = toBytes(new PTPIPContainer(new InitError(error)));
         list.add(camera);
