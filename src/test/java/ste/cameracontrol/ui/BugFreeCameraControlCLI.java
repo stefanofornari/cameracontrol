@@ -130,7 +130,7 @@ public class BugFreeCameraControlCLI extends BugFreeCLI {
 
     @Test
     public void connect_ok() throws Exception {
-        CameraUtils.givenStartedCamera();
+        CameraUtils.givenStartedCameraWithSession();
 
         new CameraControlCLI().launch("connect", "localhost");
         then(STDOUT.getLog())

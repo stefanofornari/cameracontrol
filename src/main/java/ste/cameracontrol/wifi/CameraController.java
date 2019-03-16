@@ -31,7 +31,9 @@ import java.net.Socket;
 import org.apache.commons.io.input.TeeInputStream;
 import org.apache.commons.io.output.TeeOutputStream;
 import ste.cameracontrol.CameraNotAvailableException;
+import ste.ptp.Command;
 import ste.ptp.OpenSessionOperation;
+import ste.ptp.Operation;
 import ste.ptp.PTPException;
 import ste.ptp.ip.Constants;
 import ste.ptp.ip.InitCommandAcknowledge;
@@ -128,10 +130,15 @@ public class CameraController {
     public void startRemoteSesssion() throws PTPException {
         try {
             request(
-                new PTPIPContainer(new OperationRequest(new OpenSessionOperation()))
+                new PTPIPContainer(new OperationRequest(new OpenSessionOperation(), 0x01, 0x00))
             );
-            PTPIPContainer response = response();
-            System.out.println("response.type: " + response.type);
+            response();
+
+            request(
+                new PTPIPContainer(new OperationRequest(new Operation(Command.Canon902f), 0x01, 0x01))
+            );
+            response();
+
         } catch (IOException x) {
             throw new PTPException("io error", x);
         }

@@ -65,10 +65,21 @@ public class CameraUtils {
             )
         );
         list.add(camera);
+    }
+
+    public static void givenStartedCameraWithSession() throws Exception {
+        givenStartedCamera("EOS4000D", CameraController.CLIENT_ID, GUID1);
+
+        List<CameraHost> list = CameraSimulatorFactory.CAMERA.get();
+        CameraHost camera = new CameraHost();
+        camera.response = toBytes(new PTPIPContainer(new OperationResponse(0x2001, 0)));
+        list.add(camera);
 
         camera = new CameraHost();
         camera.response = toBytes(new PTPIPContainer(new OperationResponse(0x2001, 0)));
         list.add(camera);
+
+
     }
 
     public static void givenCameraWithError1(int error) throws Exception {
